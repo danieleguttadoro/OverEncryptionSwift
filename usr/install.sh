@@ -1,9 +1,9 @@
 #!/bin/bash
 sudo rm -rf /opt/stack/swift/swift
-#sudo cp -r /home/stack/swift  /opt/stack/swift/
+sudo cp -r /home/stack/swift  /opt/stack/swift/
 
-#sudo rm /etc/swift/proxy-server.conf
-#sudo rm /opt/stack/swift/swift.egg-info/entry_points.txt
+sudo rm /etc/swift/proxy-server.conf
+sudo rm /opt/stack/swift/swift.egg-info/entry_points.txt
 
 #sudo apt-get install stow
 
