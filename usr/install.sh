@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "_____________________________ENCSWIFT_______________________________"
+
 sudo rm -rf /opt/stack/swift/swift
 sudo cp -r /home/stack/swift  /opt/stack/swift/
 
