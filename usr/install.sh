@@ -7,7 +7,7 @@ sudo rm /opt/stack/swift/swift.egg-info/entry_points.txt
 
 #sudo apt-get install stow
 
-echo "Stow configuration files"
+#echo "Stow configuration files"
 #cd /opt/stack/swift/swift/usr/stow/etc/swift
 #sudo stow -t /etc/swift/ -S .
 
