@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 sudo rm -rf /opt/stack/swift/swift
 sudo cp -r /home/stack/swift/ /opt/stack/swift/
 sudo rm /etc/swift/proxy-server.conf
