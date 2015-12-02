@@ -1,11 +1,18 @@
 
 #!/bin/bash
-echo "-----------------------------------INSTALL ENCSWIFT--------------------------------------------"
+echo "-----------------------------------INSTALL ENCSWIFT-------------------------------"
 sudo rm -rf /opt/stack/swift/swift
 sudo cp -r /home/stack/swift  /opt/stack/swift/
 
+echo "Remove Configuration Files"
 sudo rm /etc/swift/proxy-server.conf
-sudo stow -t /etc/swift/ -S /opt/stack/swift/swift/usr/stow/etc/swift
-
 sudo rm /opt/stack/swift/swift.egg-info/entry_points.txt
-sudo stow -t /opt/stack/swift/swift.egg-info/ -S /opt/stack/swift/swift/usr/stow/opt/stack/swift/swift.egg-info/
+
+sudo apt-get install stow
+
+echo "Stow configuration files"
+cd /opt/stack/swift/swift/usr/stow/etc/swift
+sudo stow -t /etc/swift/ -S .
+
+cd /opt/stack/swift/swift/usr/stow/opt/stack/swift/swift.egg-info
+sudo stow -t /opt/stack/swift/swift.egg-info/ -S .
