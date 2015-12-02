@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 sudo rm -rf /opt/stack/swift/swift
 sudo cp -r /home/stack/swift  /opt/stack/swift/
 
