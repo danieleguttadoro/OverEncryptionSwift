@@ -1,5 +1,6 @@
 
 #!/bin/bash
+echo "-----------------------------------INSTALL ENCSWIFT--------------------------------------------"
 sudo rm -rf /opt/stack/swift/swift
 sudo cp -r /home/stack/swift  /opt/stack/swift/
 
