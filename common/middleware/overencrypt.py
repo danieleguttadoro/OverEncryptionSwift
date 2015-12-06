@@ -16,9 +16,26 @@ class overencrypt(WSGIContext):
         req = Request(env)
         username = env.get('HTTP_X_USER_NAME',None)
         userid = env.get('HTTP_X_USER_ID', None)
+        print "TYPE -------->"
+        print type(env)
+        print username
+ 
+	print str(Request(env))       
+        print type(self.app)
+	req_get= Request(env)
+        cl_get = ContainerController(self.app,"admin","prova")
+        result = cl_get.GET(req_get)
+        print "-------------------------RESULT-------------------------"
+        print result
+
+
+
+        return self.app(env, start_response)        
+
 """        for a in env.keys():
                 print "---------------NEXT KEY------------------" + a 
                 print env[a]
+		sleep(3)hhi
                 if a=='HTTP_X_USER_NAME':
                         print "USERNAME ----> " + env['HTTP_X_USER_NAME']
                         break
@@ -26,10 +43,6 @@ class overencrypt(WSGIContext):
                         print "USERID ----> " + env['HTTP_X_USER_ID']
                         continue
         print env """
-        print "TYPE -------->"
-        print type(env)
-        print username
-        return self.app(env, start_response)
 
 """     GET METACONTAINER
 
