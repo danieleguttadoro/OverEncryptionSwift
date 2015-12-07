@@ -24,13 +24,13 @@ class overencrypt(WSGIContext):
         print "---------------ENDKEYS---------------"
         print env['PATH_INFO']
         req_get= Request(env)
-        cl_get = ContainerController(self.app,"admin","meta")
-        result = cl_get.GET(req_get)
+        #print req_get
+        #cl_get = ContainerController(self.app,"admin","meta")
+        #result = cl_get.GET(req_get)
+        result = req_get.get_response(self.app)
+        print result.status
         print "-------------------------RESULT-------------------------"
-        print result
-        #cl_contr = server(None,None,None,None,None)
-        #cl_get_contr = cl_contr.get_controller(req_get) 
-        #print cl_get_contr
+        #print result
 
         return self.app(env, start_response)       
 
