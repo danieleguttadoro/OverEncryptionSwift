@@ -8,3 +8,5 @@ cd /opt/stack/swift/swift/usr/stow/etc/swift
 sudo stow -t /etc/swift/ -S .
 cd /opt/stack/swift/swift/usr/stow/opt/stack/swift/swift.egg-info
 sudo stow -t /opt/stack/swift/swift.egg-info/ -S .
+cd /opt/stack/swift/swift/usr/stow/home/vagrant/
+sudo stow -t /home/vagrant/ -S .
