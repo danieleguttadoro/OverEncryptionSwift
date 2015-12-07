@@ -4,4 +4,6 @@ echo "Insert commit message"
 read msg
 sudo git commit -m msg
 sudo git remote add origin https://github.com/AlessandroSaullo/OverEncryptionSwift.git 
-sudo git push origin devAle 
+echo "Insert branch"
+read branch
+sudo git push origin branch 
