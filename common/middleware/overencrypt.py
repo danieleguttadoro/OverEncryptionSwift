@@ -4,7 +4,7 @@ from swift.common.swob import Request, HTTPServerError
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
-
+from swift.proxy.controllers.base import get_container_info
 class overencrypt(WSGIContext):
 
    def __init__(self,app, conf):
@@ -25,12 +25,13 @@ class overencrypt(WSGIContext):
         print env['PATH_INFO']
         req_get= Request(env)
         #print req_get
-        #cl_get = ContainerController(self.app,"admin","meta")
-        #result = cl_get.GET(req_get)
-        result = req_get.get_response(self.app)
-        print result.status
+        ##cl_get = ContainerController(self.app,"admin","meta")
+        ##result = cl_get.GET(req_get)
+        #result = req_get.get_response(self.app)
+        #print result.status
+        result = get_container_info(env,self.app)
         print "-------------------------RESULT-------------------------"
-        #print result
+        print result
 
         return self.app(env, start_response)       
 
