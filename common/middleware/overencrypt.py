@@ -29,9 +29,9 @@ class overencrypt(WSGIContext):
         ##result = cl_get.GET(req_get)
         #result = req_get.get_response(self.app)
         #print result.status
-        result = get_container_info(env,self.app)
+        #result = get_container_info(env,self.app)
         print "-------------------------RESULT-------------------------"
-        print result
+        #print result
 
         return self.app(env, start_response)       
 
