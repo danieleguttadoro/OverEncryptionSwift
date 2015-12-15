@@ -13,26 +13,26 @@ class overencrypt(WSGIContext):
 
    def __call__(self, env, start_response):
         print "-----------------OVERENCRYPT -----------------------"
-        req = Request(env)
         username = env.get('HTTP_X_USER_NAME',None)
         userid = env.get('HTTP_X_USER_ID', None)
         print username
-
+        print userid
         #for a in env.keys():
-        print "---------------KEYS------------------"
+        print "KEYS-------->>>>>>>>"
         print env.keys()
-        print "---------------ENDKEYS---------------"
-        print env['PATH_INFO']
+        print "ENDKEYS------->>>>>>>"
         req_get= Request(env)
+        print env['wsgi.input']
         #print req_get
         ##cl_get = ContainerController(self.app,"admin","meta")
         ##result = cl_get.GET(req_get)
         #result = req_get.get_response(self.app)
         #print result.status
-        #result = get_container_info(env,self.app)
-        print "-------------------------RESULT-------------------------"
-        #print result
 
+        result = get_container_info(env,self.app)
+        print "RESULT--->>>>>"
+        print result
+        print "-------------------------END-------------------------------"
         return self.app(env, start_response)       
 
 """        for a in env.keys():
