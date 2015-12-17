@@ -5,14 +5,14 @@ from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
-class overencrypt(WSGIContext):
+class keymaster(WSGIContext):
 
    def __init__(self,app, conf):
         self.app = app
         self.conf = conf
 
    def __call__(self, env, start_response):
-        print "-----p------------OVERENCRYPT -----------------------"
+        print "-----p------------KEYMASTER-----------------------"
         username = env.get('HTTP_X_USER_NAME',None)
         userid = env.get('HTTP_X_USER_ID', None)
         print username
@@ -78,5 +78,5 @@ def filter_factory(global_conf, **local_conf):
     conf.update(local_conf)
 
     def except_filter(app):
-        return overencrypt(app,conf)
+        return keymaster(app,conf)
     return except_filter
