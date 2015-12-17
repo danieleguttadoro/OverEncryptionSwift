@@ -13,6 +13,7 @@ class encrypt(WSGIContext):
 
    def __call__(self, env, start_response):
         print "-----------------ENCRYPT -----------------------"
+        return self.app(env, start_response)  
 
 
 def filter_factory(global_conf, **local_conf):
