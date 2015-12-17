@@ -13,6 +13,7 @@ class decrypt(WSGIContext):
 
    def __call__(self, env, start_response):
         print "-----------------DECRYPT MODULE -----------------------"
+        return self.app(env, start_response)  
         
 
 
