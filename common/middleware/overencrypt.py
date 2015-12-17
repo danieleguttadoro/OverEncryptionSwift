@@ -12,7 +12,7 @@ class overencrypt(WSGIContext):
         self.conf = conf
 
    def __call__(self, env, start_response):
-        print "-----------------OVERENCRYPT -----------------------"
+        print "-----p------------OVERENCRYPT -----------------------"
         username = env.get('HTTP_X_USER_NAME',None)
         userid = env.get('HTTP_X_USER_ID', None)
         print username
