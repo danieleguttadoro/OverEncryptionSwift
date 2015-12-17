@@ -5,7 +5,7 @@ from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
-class keymaster(WSGIContext):
+class key_master(WSGIContext):
 
    def __init__(self,app, conf):
         self.app = app
@@ -78,5 +78,5 @@ def filter_factory(global_conf, **local_conf):
     conf.update(local_conf)
 
     def except_filter(app):
-        return keymaster(app,conf)
+        return key_master(app,conf)
     return except_filter
