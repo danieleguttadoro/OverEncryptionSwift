@@ -1,12 +1,3 @@
-#!/bin/bash
-sudo rm -rf /opt/stack/swift/swift/
-sudo cp -r /home/stack/swift/ /opt/stack/swift/
-sudo rm /etc/swift/proxy-server.conf
-sudo rm /opt/stack/swift/swift.egg-info/entry_points.txt
-sudo apt-get install stow
-cd /opt/stack/swift/swift/usr/stow/etc/swift
-sudo stow -t /etc/swift/ -S .
-cd /opt/stack/swift/swift/usr/stow/opt/stack/swift/swift.egg-info
-sudo stow -t /opt/stack/swift/swift.egg-info/ -S .
-cd /opt/stack/swift/swift/usr/stow/home/vagrant/
-sudo stow -t /home/vagrant/ -S .
+sudo cp /home/stack/swift/common/middleware/overencrypt.py /opt/stack/swift/swift/common/middleware
+cat /home/stack/swift/usr/stow/opt/stack/swift/swift.egg-info/entry_points.txt | sudo tee /opt/stack/swift/swift.egg-info/entry_points.txt
+cat /home/stack/swift/usr/stow/etc/swift/proxy-server.conf | sudo tee /etc/swift/proxy-server.conf
