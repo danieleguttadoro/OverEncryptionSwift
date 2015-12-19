@@ -22,9 +22,6 @@ keystoneauth = swift.common.middleware.keystoneauth:filter_factory
 list_endpoints = swift.common.middleware.list_endpoints:filter_factory
 memcache = swift.common.middleware.memcache:filter_factory
 name_check = swift.common.middleware.name_check:filter_factory
-encrypt = swift.common.middleware.encrypt:filter_factory
-decrypt = swift.common.middleware.decrypt:filter_factory
-key_master = swift.common.middleware.key_master:filter_factory
 proxy_logging = swift.common.middleware.proxy_logging:filter_factory
 ratelimit = swift.common.middleware.ratelimit:filter_factory
 recon = swift.common.middleware.recon:filter_factory
@@ -33,3 +30,4 @@ staticweb = swift.common.middleware.staticweb:filter_factory
 tempauth = swift.common.middleware.tempauth:filter_factory
 tempurl = swift.common.middleware.tempurl:filter_factory
 xprofile = swift.common.middleware.xprofile:filter_factory
+

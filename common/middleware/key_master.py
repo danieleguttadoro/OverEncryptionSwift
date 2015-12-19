@@ -7,38 +7,45 @@ from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
 class key_master(WSGIContext):
 
+   meta_container = "meta"
+   graph_tokens = "b"
+
    def __init__(self,app, conf):
         self.app = app
         self.conf = conf
 
    def __call__(self, env, start_response):
-        print "-----p------------KEYMASTER-----------------------"
+        print "-----------------KEYMASTER-----------------------"
+	req = Request(env)
+
+	#COMMENT: Finding user
         username = env.get('HTTP_X_USER_NAME',None)
         userid = env.get('HTTP_X_USER_ID', None)
         print username
         print userid
-        #for a in env.keys():
-        print "KEYS-------->>>>>>>>"
-        print env.keys()
-        print "ENDKEYS------->>>>>>>"
-        req_get= Request(env)
-        print env['wsgi.input']
-        #print req_get
-        ##cl_get = ContainerController(self.app,"admin","meta")
-        ##result = cl_get.GET(req_get)
-        #result = req_get.get_response(self.app)
-        #print result.status
+        
+	#print "KEYS-------->>>>>>>>"
+        #print env.keys()
+        #print "ENDKEYS------->>>>>>>"     
 
-        result = get_container_info(env,self.app)
-        print "RESULT--->>>>>"
-        print result
-        print "-------------------------END-------------------------------"
+	#COMMENT: Obtaining versione and account of the Request, to do another Request and obtain the graph of tokens 
+	version, account, container, obj = req.split_path(1,4,True)  
+	path_meta = "/".join(["", version , account , self.meta_container, self.graph_tokens])  
+	print path_meta
+	req_meta = Request.blank(path_meta,None,req.headers,None)
+	graph = req_meta.get_response(self.app)
+	print graph.body
+        
+	
+	#COMMENT: Scan graph to obtain the key and insert it in the env
+
+		
+	print "-------------------------END-------------------------------"
         return self.app(env, start_response)       
 
 """        for a in env.keys():
                 print "---------------NEXT KEY------------------" + a 
                 print env[a]
-		sleep(3)hhi
                 if a=='HTTP_X_USER_NAME':
                         print "USERNAME ----> " + env['HTTP_X_USER_NAME']
                         break
@@ -46,31 +53,6 @@ class key_master(WSGIContext):
                         print "USERID ----> " + env['HTTP_X_USER_ID']
                         continue
         print env """
-
-"""     GET METACONTAINER
-
-        print "METHOD ----> " + req.method
-        print "PATH REQUEST ---->" + req.path_info
-        print username
-        print userid
-        print "ENV KEYS" + env['PATH_INFO']
-        first = env['PATH_INFO'].split('_')
-        print 'first'
-        print first
-        print 'second'
-        second = first[1].split('/')
-        print second
-        second[1] = 'meta'
-        acc_name = 'AUTH_' + second[0]
-        collect = first[0] + '_' + second[0] + '/' + second[1] 
-        print 'collect' + collect
-        env2 = env
-        env2['PATH_INFO'] = collect
-        print env.keys()
-        req2 = Request(env2)
-
-        cl_get = ContainerController(self.app,acc_name,second[1])
-        cl_get.GET(req2) """
 
 
 def filter_factory(global_conf, **local_conf):
