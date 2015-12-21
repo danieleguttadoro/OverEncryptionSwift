@@ -18,13 +18,11 @@ class key_master(WSGIContext):
         print "-----------------KEYMASTER-----------------------"
 	req = Request(env)
 
-	#COMMENT: Finding user
+	#COMMENT: Finding user and method
         username = env.get('HTTP_X_USER_NAME',None)
         userid = env.get('HTTP_X_USER_ID', None)
         print username
-        print userid
-        print req.headers
-        print req.body
+        print req.method
         
 	#print "KEYS-------->>>>>>>>"
         #print env.keys()
@@ -34,22 +32,21 @@ class key_master(WSGIContext):
 	version, account, container, obj = req.split_path(1,4,True)  
 	path_meta = "/".join(["", version , account , self.meta_container, self.graph_tokens])  
 	print path_meta
-	req_meta = Request.blank(path_meta,None,req.headers,None)
-	graph = req_meta.get_response(self.app)
-	print graph.body
-        
-	
+	req_meta_container = Request.blank(path_meta,None,req.headers,None)
+	req_graph = req_meta_container.get_response(self.app)
+	print req_graph.body
+       
 	#COMMENT: Scan graph to obtain the key and insert it in the env
+	
+	"""TODO scan of the graph"""
 
+	#COMMENT: Modify the graph
 	#Fake modify of the graph
-        new_graph = graph
-        new_graph.body = "Nuova Modifica: STIAMO LAVORANDO BENE"
-        ##print new_graph
-        ##print new_graph.headers
-        ##print new_graph.body
-
+        req_meta_container.body = "Modifica: STIAMO LAVORANDO BENE"
+	
         #COMMENT: Upload on metacontainer the new version of graph
-
+	req_meta_container.method = 'PUT'
+	req_meta_container.get_response(self.app)
 		
 	print "-------------------------END-------------------------------"
         return self.app(env, start_response)       
