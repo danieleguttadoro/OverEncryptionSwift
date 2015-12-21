@@ -17,19 +17,24 @@ import base64
 from swift.proxy.controllers.base import get_container_info
 from swift.proxy.controllers.base import get_account_info
 
+import time
+import hashlib
+
+from swift.common.http import is_success
+from swift.common.swob import wsgify
 
 class key_master(WSGIContext):
 
    def __init__(self,app, conf):
         self.app = app
         self.conf = conf
-
-   def __call__(self, env, start_response):
+   @wsgify
+   def __call__(self, req):
         print "-----------------OVERENCRYPT -----------------------"
-        req = Request(env)
-        username = env.get('HTTP_X_USER_NAME',None)
-        userid = env.get('HTTP_X_USER_ID', None)
-        """ 
+        #req = Request(env)
+        #username = env.get('HTTP_X_USER_NAME',None)
+        #userid = env.get('HTTP_X_USER_ID', None)
+	""" 
         for a in env.keys():
             print "---------------NEXT KEY------------------" + a 
             print env[a]
@@ -41,10 +46,10 @@ class key_master(WSGIContext):
                 continue
         print username
         print env
-        print "TYPE env -------->"
-        print type(env) """
- 
-        if env['REQUEST_METHOD'] == 'GET':
+       """
+        resp = req.get_response(self.app)
+
+        if is_success(resp.status_int) and req.method == 'GET':
          #   version, account, container, obj = req.split_path(1, 4, True)
           #  if not obj:
                 # request path had no object component -- account or container PUT
@@ -62,13 +67,56 @@ class key_master(WSGIContext):
         #print get_account_info(req.environ, self.app)
         #print "container info ............................"
         #print get_container_info(req.environ, self.app)
-            resp = req.get_response(self.app)
-            print "resp ..........................."
+            print "resp content_length ..........................."
+            print resp.content_length
+            #time.sleep(3)
+	    print "resp  type ..........................."
+            print resp.content_type
+            #time.sleep(3)
+            print "resp range ..........................."
+            print resp.content_range
+            #time.sleep(3)
+            print "resp etag ..........................."
+            print resp.etag
+            #time.sleep(3)
+            print "resp status ..........................."
+            print resp.status
+            #time.sleep(3)
+            print "resp body ..........................."
             print resp.body
-        
-            resp.body = encrypt_file(resp.body)
+            #time.sleep(3)
+            print "resp host_url ..........................."
+            print resp.host_url
+            #time.sleep(3)
+            print "resp last_modified ..........................."
+            print resp.last_modified
+            #time.sleep(3)
+            print "resp location ..........................."
+            print resp.location
+            #time.sleep(3)
+            print "resp accept_ranges ..........................."
+            print resp.accept_ranges
+            #time.sleep(3)
+            print "resp charset ..........................."
+            print resp.charset
+            #time.sleep(3)
+            print "resp app_iter ..........................."
+            print resp.app_iter
+            #time.sleep(3)
 
-        return self.app(env, start_response)
+	    
+            resp.body = encrypt_file(resp.body)
+            x = 0;
+            for c in encrypt_file(str(resp.content_length)): 
+		x += ord(c)
+
+    	    resp.content_length = 125   #crea una lambda function per calcolare x
+	    #resp.content_type = encrypt_file(str(resp.content_type))
+	    #resp.last_modified = encrypt_file(str(resp.last_modified))
+
+	    return resp
+
+        #return self.app(env, start_response)
 
         """     GET METACONTAINER
  
