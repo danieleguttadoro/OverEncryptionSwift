@@ -34,7 +34,7 @@ class key_master(WSGIContext):
         #req = Request(env)
         #username = env.get('HTTP_X_USER_NAME',None)
         #userid = env.get('HTTP_X_USER_ID', None)
-	""" 
+        """ 
         for a in env.keys():
             print "---------------NEXT KEY------------------" + a 
             print env[a]
@@ -46,102 +46,67 @@ class key_master(WSGIContext):
                 continue
         print username
         print env
-       """
+        """
         resp = req.get_response(self.app)
 
         if is_success(resp.status_int) and req.method == 'GET':
-         #   version, account, container, obj = req.split_path(1, 4, True)
-          #  if not obj:
-                # request path had no object component -- account or container PUT
-           #     return self.app(env, start_response)
- 
-        # We're doing an object PUT -- wrap the input stream
-        # Make sure to avoid reading everything into memory
-        #not_blank = lambda somestr: somestr != ''
-
-        #bz = BZ2Compressor()
-        #compressed = chain((bz.compress(i) for i in env['wsgi.input']),
-        #(bz.flush() for i in (1,)))
-        #env['wsgi.input'] = ifilter(not_blank, compressed)
         #print "account info ..........................."
         #print get_account_info(req.environ, self.app)
         #print "container info ............................"
         #print get_container_info(req.environ, self.app)
-            print "resp content_length ..........................."
-            print resp.content_length
+            #print "resp content_length ..........................."
+            #print resp.content_length
             #time.sleep(3)
-	    print "resp  type ..........................."
-            print resp.content_type
+            #print "resp  type ..........................."
+            #print resp.content_type
             #time.sleep(3)
-            print "resp range ..........................."
-            print resp.content_range
+            #print "resp range ..........................."
+            #print resp.content_range
             #time.sleep(3)
-            print "resp etag ..........................."
-            print resp.etag
+            #print "resp etag ..........................."
+            #print resp.etag
             #time.sleep(3)
-            print "resp status ..........................."
-            print resp.status
+            #print "resp status ..........................."
+            #print resp.status
             #time.sleep(3)
-            print "resp body ..........................."
-            print resp.body
+            #print "resp body ..........................."
+            #print resp.body
             #time.sleep(3)
-            print "resp host_url ..........................."
-            print resp.host_url
+            #print "resp host_url ..........................."
+            #print resp.host_url
             #time.sleep(3)
-            print "resp last_modified ..........................."
-            print resp.last_modified
+            #print "resp last_modified ..........................."
+            #print resp.last_modified
             #time.sleep(3)
-            print "resp location ..........................."
-            print resp.location
+            #print "resp location ..........................."
+            #print resp.location
             #time.sleep(3)
-            print "resp accept_ranges ..........................."
-            print resp.accept_ranges
+            #print "resp accept_ranges ..........................."
+            #print resp.accept_ranges
             #time.sleep(3)
-            print "resp charset ..........................."
-            print resp.charset
+            #print "resp charset ..........................."
+            #print resp.charset
             #time.sleep(3)
-            print "resp app_iter ..........................."
-            print resp.app_iter
+            #print "resp app_iter ..........................."
+            #print resp.app_iter
             #time.sleep(3)
+            
+            """Returns a 503 response with "DISABLED BY FILE" in the body."""
+            return Response(request=req, status=403, body="USER UNAUTHORIZED TO OBTAIN THIS FILE",
+                            content_type="text/plain")
 
-	    
             resp.body = encrypt_file(resp.body)
-            x = 0;
+            x = 0
             for c in encrypt_file(str(resp.content_length)): 
-		x += ord(c)
+	        	x += ord(c)
 
-    	    resp.content_length = 125   #crea una lambda function per calcolare x
-	    #resp.content_type = encrypt_file(str(resp.content_type))
-	    #resp.last_modified = encrypt_file(str(resp.last_modified))
-
-	    return resp
+    	    resp.content_length = x   #crea una lambda function per calcolare x
+            resp.content_type = encrypt_file(str(resp.content_type)) #sembra un'istruzione inutile (linux riconosce che un file di testo)
+            resp.last_modified = encrypt_file(str(resp.last_modified)) #sembra un'istruzione inutile (linux mette come ultima modifica la data di quando lo scarichi)
+            return resp
 
         #return self.app(env, start_response)
 
-        """     GET METACONTAINER
- 
-        print "METHOD ----> " + req.method
-        print "PATH REQUEST ---->" + req.path_info
-        print username
-        print userid
-        print "ENV KEYS" + env['PATH_INFO']
-        first = env['PATH_INFO'].split('_')
-        print 'first'
-        print first
-        print 'second'
-        second = first[1].split('/')
-        print second
-        acc_name = 'AUTH_' + second[0]
-        collect = first[0] + '_' + second[0] + '/meta'] 
-        print 'collect' + collect
-        env2 = env
-        env2['PATH_INFO'] = collect
-        print env.keys()
-        req2 = Request(env2)
- 
-        cl_get = ContainerController(self.app,acc_name,'meta')
-        cl_get.GET(req2) """
- 
 
 def encrypt_file (obj):
     """ Encrypts a file using AES (CBC mode) with the
@@ -194,7 +159,7 @@ def encrypt_file (obj):
     DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
 
     # generate a random secret key
-    secret = os.urandom(BLOCK_SIZE)
+    secret = '01234567890123456789012345678901' #os.urandom(BLOCK_SIZE)
 
     # create a cipher object using the random secret
     cipher = AES.new(secret)
