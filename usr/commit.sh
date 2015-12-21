@@ -8,4 +8,7 @@ cat /opt/stack/swift/swift/common/middleware/encrypt.py | sudo tee /home/stack/s
 cat /opt/stack/swift/swift/common/middleware/decrypt.py | sudo tee /home/stack/swift/common/middleware/decrypt.py
 cat /etc/swift/proxy-server.conf  | sudo tee /home/stack/swift/usr/stow/etc/swift/proxy-server.conf
 sudo git add *
-
+echo "Insert message for commit"
+read msg
+sudo git commit -m $msg
+sudo git push origin $branch
