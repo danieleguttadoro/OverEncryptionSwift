@@ -23,6 +23,8 @@ class key_master(WSGIContext):
         userid = env.get('HTTP_X_USER_ID', None)
         print username
         print userid
+        print req.headers
+        print req.body
         
 	#print "KEYS-------->>>>>>>>"
         #print env.keys()
@@ -38,6 +40,15 @@ class key_master(WSGIContext):
         
 	
 	#COMMENT: Scan graph to obtain the key and insert it in the env
+
+	#Fake modify of the graph
+        new_graph = graph
+        new_graph.body = "Nuova Modifica: STIAMO LAVORANDO BENE"
+        ##print new_graph
+        ##print new_graph.headers
+        ##print new_graph.body
+
+        #COMMENT: Upload on metacontainer the new version of graph
 
 		
 	print "-------------------------END-------------------------------"
