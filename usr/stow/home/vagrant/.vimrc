@@ -22,9 +22,6 @@ set hlsearch
 " trovato anche durante la digitazione
 set incsearch
 
-" mostriamo sempre la status bar
-set laststatus=2
-
 " disabilitando la modalità retro-compatibilità, si attivano
 " tutte le features di Vim (in opposizione a Vi)
 set nocompatible
@@ -82,11 +79,6 @@ set paste
 
 " disabilitiamo l’autoindentazione, fa più danno che altro
 set noautoindent
-
-" se il sistema dispone di un mouse, perché non usarlo?
-if has('mouse')
-set mouse=a
-endif
 
 " perché non cambiare colore in modalità inserimento?
 if &term =~ "xterm"
