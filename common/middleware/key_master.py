@@ -42,7 +42,7 @@ class key_master(WSGIContext):
 
         if key == '':
             raise_error(req,403)
-        env['swift_crypto_fetch_crypto_key'] = key
+        #env['swift_crypto_fetch_crypto_key'] = key
 
         #COMMENT: Modify the graph
         #Fake modify of the graph
