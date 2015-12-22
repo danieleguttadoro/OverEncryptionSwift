@@ -16,7 +16,7 @@ class key_master(WSGIContext):
         self.app = app
         self.conf = conf
    
-   def __call__(self, env, stat_response):
+   def __call__(self, env, start_response):
       print "----------------- KEY_MASTER -----------------------"
         
       req = Request(env)
