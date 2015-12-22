@@ -9,6 +9,6 @@ cat /opt/stack/swift/swift/common/middleware/decrypt.py | sudo tee /home/stack/s
 cat /etc/swift/proxy-server.conf  | sudo tee /home/stack/swift/usr/stow/etc/swift/proxy-server.conf
 sudo git add *
 echo "Insert message for commit:"
-read msg
+read -e msg
 sudo git commit -m $msg
 sudo git push origin $branch
