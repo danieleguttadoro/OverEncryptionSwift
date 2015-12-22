@@ -28,14 +28,14 @@ class key_master(WSGIContext):
       if username != "ceilometer":
 
         #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens 
-	     version, account, container, obj = req.split_path(1,4,True)  
-	     path_meta = "/".join(["", version , account , self.meta_container, self.graph_tokens])  
-	     print path_meta
-	     req_meta_container = Request.blank(path_meta,None,req.headers,None)
-	     req_graph = req_meta_container.get_response(self.app)
-	     print req_graph.body
+	version, account, container, obj = req.split_path(1,4,True)  
+	path_meta = "/".join(["", version , account , self.meta_container, self.graph_tokens])  
+	print path_meta
+	req_meta_container = Request.blank(path_meta,None,req.headers,None)
+	req_graph = req_meta_container.get_response(self.app)
+	print req_graph.body
 	     
-	     # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+	# COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
         # Example: retrieve the key 
         print "Retrieve the key ..."
         key = '01234567890123456789012345678901' # 32 char length
