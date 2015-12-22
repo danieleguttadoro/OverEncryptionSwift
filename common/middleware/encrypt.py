@@ -22,17 +22,16 @@ class encrypt(WSGIContext):
         print "----------------- ENCRYPT -----------------------"
         
         req = Request(env)
-
+        resp = req.get_response(self.app)
+        
         if is_success(resp.status_int) and req.method == 'GET':
             key = env['swift_crypto_fetch_crypto_key']
-            return encrypt_response(req,key)
+            return encrypt_response(req,key,resp)
 
         return self.app(env, start_response)  
 
     @wsgify
-    def encrypt_response (req,key):
-
-        resp = req.get_response(self.app)
+    def encrypt_response (req,key,resp):
 
                 
         resp.body = encrypt_resource(resp.body,key)
