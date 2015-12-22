@@ -25,9 +25,8 @@ class encrypt(WSGIContext):
         resp = req.get_response(self.app)
         
         if is_success(resp.status_int) and req.method == 'GET':
-            pass
-            #key = env['swift_crypto_fetch_crypto_key']
-            #return encrypt_response(req,key,resp)
+            key = env['swift_crypto_fetch_crypto_key']
+            return encrypt_response(req,key,resp)
 
         return self.app(env, start_response)  
 
