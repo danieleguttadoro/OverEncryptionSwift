@@ -3,19 +3,24 @@ from swift import gettext_ as _
 from swift.common.swob import Request, Response, HTTPServerError
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
-
 from swift.common.swob import wsgify
+
+#To implement rabbit connection
+import pika
 
 class key_master(WSGIContext):
 
    # Names of meta container and file of the graph
    meta_container = "meta"
    graph_tokens = "b"
+   MSG_SERVICE_SRV= 'localhost'
+   MSG_QUEUENAME = 'upd_catalog'
 
    def __init__(self,app, conf):
         self.app = app
         self.conf = conf
    
+
    def __call__(self, env, start_response):
       print "----------------- KEY_MASTER -----------------------"
         
@@ -27,15 +32,16 @@ class key_master(WSGIContext):
       #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
       if username != "ceilometer":
 
+        
         #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens 
-	version, account, container, obj = req.split_path(1,4,True)  
-	path_meta = "/".join(["", version , account , self.meta_container, self.graph_tokens])  
-	print path_meta
-	req_meta_container = Request.blank(path_meta,None,req.headers,None)
-	req_graph = req_meta_container.get_response(self.app)
-	print req_graph.body
-	     
-	# COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+        version, account, container, obj = req.split_path(1,4,True)  
+        path_meta = "/".join(["", version , account , self.meta_container, self.graph_tokens]) 
+        print path_meta
+        req_meta_container = Request.blank(path_meta,None,req.headers,None)
+        req_graph = req_meta_container.get_response(self.app)
+    	print req_graph.body
+	    
+    	# COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
         # Example: retrieve the key 
         print "Retrieve the key ..."
         key = '01234567890123456789012345678901' # 32 char length
@@ -47,12 +53,24 @@ class key_master(WSGIContext):
         #COMMENT: Modify the graph
         #Fake modify of the graph
         req_meta_container.body = "Modifica effettuata"
+        
+        send_updcat("Prova Rabbitmq...")
+        
 
         #COMMENT: Upload on metacontainer the new version of graph
         req_meta_container.method = 'PUT'
         req_meta_container.get_response(self.app)
 
       return self.app(env, start_response)
+
+   def send_updcat(msgtxt, rtk=None):
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.MSG_SERVICE_SRV))
+        channel = connection.channel()
+        print type(channel)
+        channel.queue_declare(queue=self.MSG_QUEUENAME, durable=True)
+        message = str(msgtxt)
+        #channel.basic_publish(exchange='', routing_key=self.MSG_QUEUENAME, body=message, properties=pika.BasicProperties(delivery_mode = 2,) # make message persistent)  
+        #connection.close()
 
 @wsgify
 def raise_error(req,stat):
