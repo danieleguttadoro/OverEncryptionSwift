@@ -6,7 +6,7 @@ from swift.common.wsgi import WSGIContext
 from swift.common.swob import wsgify
 
 #To implement rabbit connection
-import pika
+#import pika
 
 class key_master(WSGIContext):
 
@@ -54,7 +54,7 @@ class key_master(WSGIContext):
         #Fake modify of the graph
         req_meta_container.body = "Modifica effettuata"
         
-        send_updcat("Prova Rabbitmq...")
+        #send_updcat("Prova Rabbitmq...")
         
 
         #COMMENT: Upload on metacontainer the new version of graph
