@@ -6,6 +6,9 @@ from swift.common.wsgi import WSGIContext
 
 from swift.common.swob import wsgify
 
+import pika
+
+
 class key_master(WSGIContext):
 
    # Names of meta container and file of the graph
@@ -17,8 +20,44 @@ class key_master(WSGIContext):
         self.conf = conf
    
    def __call__(self, env, start_response):
-      print "----------------- KEY_MASTER -----------------------"
-      
+        print "----------------- KEY_MASTER -----------------------"
+        
+        username = env.get('HTTP_X_USER_NAME',None)
+        
+        if username != "admin":
+            connection = pika.BlockingConnection(pika.ConnectionParameters(
+               'localhost'))
+            channel = connection.channel()
+            channel.queue_declare(queue='hello', durable=True)
+        
+            channel.basic_publish(exchange='',
+                      routing_key='hello',
+                      body='Hello World!',
+                      properties=pika.BasicProperties(
+                         delivery_mode = 2, # make message persistent, however it isn't guarantee that the message won't be lost (see 'Note on message persistence' in https://www.rabbitmq.com/tutorials/tutorial-two-python.html)
+                      ))
+            print(" [x] Sent 'Hello World!'")
+            connection.close()
+
+              
+        if username != "demo":
+            connection = pika.BlockingConnection(pika.ConnectionParameters(
+               'localhost'))
+            channel = connection.channel()
+            channel.queue_declare(queue='hello', durable=True)
+            
+            def callback(ch, method, properties, body):
+                print(" [x] Received %r" % body)
+                time.sleep(body.count(b'.'))
+                print(" [x] Done")
+                ch.basic_ack(delivery_tag = method.delivery_tag)
+            
+            channel.basic_consume(callback,
+                      queue='hello')
+
+            print(' [*] Waiting for messages. To exit press CTRL+C')
+            channel.start_consuming()
+        return self.app(env, start_response)
 """        
         req = Request(env)
         resp = req.get_response(self.app)
@@ -53,7 +92,7 @@ class key_master(WSGIContext):
             req_meta_container.method = 'PUT'
             req_meta_container.get_response(self.app)
 
-        return self.app(env, start_response)
+
 
 @wsgify
 def raise_error(req,stat):
