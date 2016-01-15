@@ -12,7 +12,6 @@ import traceback
 from barbicanclient import client
 from keystoneclient import session
 from keystoneclient.auth import identity
-from connection import *
 ################
 
 class key_master(WSGIContext):
@@ -28,7 +27,7 @@ class key_master(WSGIContext):
 
    def __call__(self, env, start_response):
       print "----------------- KEY_MASTER -----------------------"
-        
+      barbican_client()
       req = Request(env)
       resp = req.get_response(self.app)
 
@@ -67,6 +66,14 @@ class key_master(WSGIContext):
 
 
 def barbican_client():
+
+    #Variables for barbican
+    ADMIN_USER="admin"
+    ADMIN_PASS="secretsecret"
+    ADMIN_TENANT="demo"
+    AUTH_URL="http://127.0.0.1:5000/v2.0"
+    BARB_URL="http://127.0.0.1:9311"
+    AUTH_IP="127.0.0.1"
 	
     try:
        # We'll use Keystone API v3 for authentication
@@ -78,6 +85,7 @@ def barbican_client():
         # Next we'll create a Keystone session using the auth plugin we just created
         sess = session.Session(auth=auth)
 
+	print '-----------------------BARBICAN---------------------------'
         print 'session created successfully'
 
         # Now we use the session to create a Barbican client
@@ -101,8 +109,7 @@ def barbican_client():
         # The URI returned by store() uniquely identifies your secret in the Barbican service.
         # After a secret is stored, the URI is also available by accessing
         # the secret_ref attribute.
-        print(secret.secret_ref.replace('localhost',
-            AUTH_IP))
+        print(secret.secret_ref.replace('localhost',AUTH_IP))
         #http://localhost:9311/v1/secrets/091adb32-4050-4980-8558-90833c531413
 
         # When we need to retrieve our secret at a later time, we can use the secret_ref
