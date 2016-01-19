@@ -31,7 +31,7 @@ class key_master(WSGIContext):
 
    def __call__(self, env, start_response):
       print "----------------- KEY_MASTER -----------------------"
-      barbican_client()
+      #barbican_client()
       req = Request(env)
       resp = req.get_response(self.app)
 
@@ -41,10 +41,10 @@ class key_master(WSGIContext):
       if username != "ceilometer":
 
 	#Get the catalog from metacontainer
-        #req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
-	#catalog = catalog_functions.get_graph(json_catalog)
-	print "-----------------CATALOG"
-	print json_catalog   
+        req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
+	graph = catalog_functions.load_graph(json_catalog)
+	print "-----------------GRAPH"
+	print graph
     	# COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
         # Example: retrieve the key 
         print "Retrieve the key ..."
@@ -57,7 +57,8 @@ class key_master(WSGIContext):
         #COMMENT: Modify the graph
         #Fake modify of the graph
         #req_meta_container.body = "Modifica effettuata"
-        
+        #req_meta_container.body = catalog_functions.add_node(graph)
+ 
         #COMMENT: Upload on metacontainer the new version of graph
         req_meta_container.method = 'PUT'
         req_meta_container.get_response(self.app)
