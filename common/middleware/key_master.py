@@ -43,28 +43,33 @@ class key_master(WSGIContext):
       print userid
       #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
       if username != "ceilometer":
-
+      
        if req.method != "PUT":
 	#Get the catalog from metacontainer
         req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
+	print json_catalog
 	graph = catalog_functions.load_graph(json_catalog)
         print "-----------------GRAPH-------------------"
         print graph
 
 	if req.method == "GET":
-	
+	    
     	    # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
             # Example: retrieve the key
-	    token = catalog_functions.get_token(userid,graph,userid) 
-	    key = catalog_functions.get_key(token)
-
+	    token = catalog_functions.get_DerivPath(userid,catalog_functions.get_graph(json_catalog),userid)
+	    print "TOKEN"
+	    print token
+	    #token = catalog_functions.get_token(userid,json_catalog,userid) 
+	    key = "aa"# catalog_functions.get_key(token)
+             
             if key == '':
 		raise_error(req,403)
 	    if key != None:	
 		#env['swift_crypto_fetch_crypto_key'] = key
 		pass
+	    print "fine get"
 	elif req.method == "POST":
-
+		pass
 	    #if env['overencrypt']=="QualcosaYes"         
 	    
 		#catalog_functions.overencrypt()
@@ -76,12 +81,14 @@ class key_master(WSGIContext):
                 #req_meta_container.body = catalog_functions.add_node(graph)
  
             	#COMMENT: Upload on metacontainer the new version of graph
-            	req_meta_container.method = 'PUT'
-            	req_meta_container.get_response(self.app)
+            	#req_meta_container.method = 'PUT'
+            	#req_meta_container.get_response(self.app)
 
 	elif req.method == "DELETE":
 	    #TODO
+      
 	    pass
+      print "----fine------"
       return self.app(env, start_response)
 
 

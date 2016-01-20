@@ -113,9 +113,13 @@ def get_DerivPath(userID, graph, destination):
     # Build a path bottom-up
     currDestination = destination
     currSource = None
+    print "PROVA2"
+    print graph
     while currSource != source:
         for entry in [elem for elem in graph if elem['ACL_CHILD'] == currDestination]:
-            currSource = entry['ACL']
+            print "PROva3"
+	    print currSource
+	    currSource = entry['ACL']
             currDestination = entry['ACL']
             if tokenIsValid(entry['CRYPTOTOKEN'], entry['OWNERTOKEN']):
                 pathInv.append(entry)
@@ -184,12 +188,12 @@ def get_key(token):
     key = '01234567890123456789012345678901' # 32 char length
     return key
 
-def get_token(userid,graph, acl_list):
+def get_token(userID,catalog, acl_list):
     """
     """
     literal_Acl_share_sorted = ':'.join(sorted(acl_list))
     myPath = []
-    myPath = get_DerivPath(userID, graph, literal_Acl_share_sorted)
+    myPath = get_DerivPath(userID,get_graph(catalog), literal_Acl_share_sorted)
     if len(myPath) == 0:
         return None, None
     token, lastOwnerToken = browsePath(userID, myPath)
