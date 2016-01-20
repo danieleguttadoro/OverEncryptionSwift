@@ -100,34 +100,23 @@ def load_graph(json_data_catalog):
     return json_cat['NODES']
 
 
-def get_DerivPath(userID, graph, destination):
+#da modificare non == ma nella lista di container
+def get_DerivPath(graph, destination):
     """
     Args:
         graph: the graph seen by the user
-        destination: the ACL of the destination node
+        container
     Returns:
         the path from the root to the destination node
     """
-    source = userID
-    pathInv = []
-    # Build a path bottom-up
     currDestination = destination
-    currSource = None
-    print "PROVA2"
-    print graph
-    while currSource != source:
-        for entry in [elem for elem in graph if elem['ACL_CHILD'] == currDestination]:
-            print "PROva3"
-	    print currSource
-	    currSource = entry['ACL']
-            currDestination = entry['ACL']
-            if tokenIsValid(entry['CRYPTOTOKEN'], entry['OWNERTOKEN']):
-                pathInv.append(entry)
+    for elem in graph:
+       if currDestination == elem['NODE_CHILD']:
+            if tokenIsValid(elem['CRYPTOTOKEN'], elem['OWNERTOKEN']):
+               return elem
+    return None
 
-    # Invert the path built in the previous step to make it browsable
-    return pathInv[::-1]
-
-
+#NoT USED
 def majorChild(graph, new_node_Acl):
     """
     Get the parent node of the new node (it may be a child node itself)
@@ -151,7 +140,7 @@ def majorChild(graph, new_node_Acl):
                 majChlACL = node['ACL_CHILD']
     return majChl, majChlACL
 
-
+#NOT USED
 def browsePath(userID, MyPath):
     """
     Browse a path and derive the token.
@@ -163,14 +152,18 @@ def browsePath(userID, MyPath):
     for step in MyPath:
         if not k:
             # First arch (or single arch)
-            k = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
-                              sender=step['OWNERTOKEN'], receiver=userID)
+	    #PROVA
+	    k = step['CRYPTOTOKEN']	
+            #k = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
+                              #sender=step['OWNERTOKEN'], receiver=userID)
             k_prec = k
         else:
-            token_ciph = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
-                                       sender=step['OWNERTOKEN'], receiver=userID)
-            k = decrypt_msg(base64.b64decode(token_ciph), k_prec)
-            k_prec = k
+	    token_ciph = step['CRYPTOTOKEN']
+            #token_ciph = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
+                                      # sender=step['OWNERTOKEN'], receiver=userIDi
+            #k = decrypt_msg(base64.b64decode(token_ciph), k_prec)
+            k = step['CRYPTOTOKEN']
+	    k_prec = k
         lastOwnerToken = step['OWNERTOKEN']
     return k, lastOwnerToken
 
@@ -183,18 +176,10 @@ def tokenIsValid(token, owner):
     """
     return True
 
-def get_key(token):
-    print "Retrieve the key ..."
-    key = '01234567890123456789012345678901' # 32 char length
-    return key
-
-def get_token(userID,catalog, acl_list):
-    """
-    """
-    literal_Acl_share_sorted = ':'.join(sorted(acl_list))
-    myPath = []
-    myPath = get_DerivPath(userID,get_graph(catalog), literal_Acl_share_sorted)
-    if len(myPath) == 0:
-        return None, None
-    token, lastOwnerToken = browsePath(userID, myPath)
-    return token
+def get_cryptotoken(catalog, container):
+    myPath = get_DerivPath(get_graph(catalog), container)
+    if myPath == None:
+        return None
+    
+    return myPath['CRYPTOTOKEN']
+    

@@ -50,24 +50,27 @@ class key_master(WSGIContext):
 	print json_catalog
 	graph = catalog_functions.load_graph(json_catalog)
         print "-----------------GRAPH-------------------"
-        print graph
+	print graph
+	
 
 	if req.method == "GET":
 	    
     	    # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
-            # Example: retrieve the key
-	    token = catalog_functions.get_DerivPath(userid,catalog_functions.get_graph(json_catalog),userid)
+	    #token = catalog_functions.get_DerivPath(catalog_functions.get_graph(json_catalog),"prova")
+	    version , account , container , obj = req.split_path(1,4,True)
+	    print container	
+            cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
 	    print "TOKEN"
-	    print token
-	    #token = catalog_functions.get_token(userid,json_catalog,userid) 
-	    key = "aa"# catalog_functions.get_key(token)
+	    print cryptotoken
+	    
+	    #if cryptotoken == '':
+		#raise_error(req,403)
+
+	    if cryptotoken != None:
+	        env['swift_crypto_fetch_crypto_token'] = cryptotoken
+	        
+	    
              
-            if key == '':
-		raise_error(req,403)
-	    if key != None:	
-		#env['swift_crypto_fetch_crypto_key'] = key
-		pass
-	    print "fine get"
 	elif req.method == "POST":
 		pass
 	    #if env['overencrypt']=="QualcosaYes"         
@@ -88,7 +91,7 @@ class key_master(WSGIContext):
 	    #TODO
       
 	    pass
-      print "----fine------"
+      
       return self.app(env, start_response)
 
 

@@ -6,6 +6,8 @@ from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
 
+import catalog_functions
+
 class decrypt(WSGIContext):
 
    def __init__(self,app, conf):
@@ -14,10 +16,30 @@ class decrypt(WSGIContext):
 
    def __call__(self, env, start_response):
         print "----------------- DECRYPT MODULE -----------------------"
-        return self.app(env, start_response)  
+        req = Request(env)
+	resp = req.get_response(self.app)
+        cryptotoken = "ciccio"
+	if env.has_key('cryptotoken'):
+            cryptotoken = env['iik']
+	    print cryptotoken
+            token = decrypt_resource(cryptotoken,get_privatekey())
+	    key = decrypt_resource(get_cryptokey(),token)
+	    response = decrypt_resource(resp.body,key)
+	    last_modified = decrypt_resource(resp.last_modified,key)
+	    resp.content_lenght = len(resp.body)
+	return self.app(env, start_response)  
         
-def decrypt_resource (obj, secret):
+def get_cryptokey(token):
+    print "Retrieve the key ..."
+    key = '01234567890123456789012345678901' # 32 char length
+    return key
 
+def get_privatekey():
+    return '01234567890123456789012345678901'
+
+
+def decrypt_resource (obj, secret):
+    return "aa"
     # the block size for the cipher object; must be 16, 24, or 32 for AES
     BLOCK_SIZE = 32
 
