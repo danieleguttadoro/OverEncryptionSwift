@@ -61,7 +61,7 @@ def add_node(graph):
    
 #added in server
 def remove_node(graph):
-    
+    pass
 
 
 def get_graph(json_data_catalog):
@@ -179,13 +179,17 @@ def tokenIsValid(token, owner):
     """
     return True
 
+def get_key(token):
+    print "Retrieve the key ..."
+    key = '01234567890123456789012345678901' # 32 char length
+    return key
 
-def get_token(userID, acl_list):
+def get_token(userid,graph, acl_list):
     """
     """
     literal_Acl_share_sorted = ':'.join(sorted(acl_list))
     myPath = []
-    myPath = get_DerivPath(userID, get_graph(get_catalog(userID)), literal_Acl_share_sorted)
+    myPath = get_DerivPath(userID, graph, literal_Acl_share_sorted)
     if len(myPath) == 0:
         return None, None
     token, lastOwnerToken = browsePath(userID, myPath)

@@ -37,32 +37,51 @@ class key_master(WSGIContext):
 
       #COMMENT: Finding user and method
       username = env.get('HTTP_X_USER_NAME',None)
+      userid   = env.get('HTTP_X_USER_ID',None)
+      print "------------USERID, USERNAME----------------"
+      print username
+      print userid
       #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
       if username != "ceilometer":
 
+       if req.method != "PUT":
 	#Get the catalog from metacontainer
         req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
 	graph = catalog_functions.load_graph(json_catalog)
-	print "-----------------GRAPH"
-	print graph
-    	# COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
-        # Example: retrieve the key 
-        print "Retrieve the key ..."
-        key = '01234567890123456789012345678901' # 32 char length
+        print "-----------------GRAPH-------------------"
+        print graph
 
-        if key == '':
-            raise_error(req,403)
-        #env['swift_crypto_fetch_crypto_key'] = key
+	if req.method == "GET":
+	
+    	    # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+            # Example: retrieve the key
+	    token = catalog_functions.get_token(userid,graph,userid) 
+	    key = catalog_functions.get_key(token)
 
-        #COMMENT: Modify the graph
-        #Fake modify of the graph
-        #req_meta_container.body = "Modifica effettuata"
-        #req_meta_container.body = catalog_functions.add_node(graph)
+            if key == '':
+		raise_error(req,403)
+	    if key != None:	
+		#env['swift_crypto_fetch_crypto_key'] = key
+		pass
+	elif req.method == "POST":
+
+	    #if env['overencrypt']=="QualcosaYes"         
+	    
+		#catalog_functions.overencrypt()
+		
+	    #else if env['overencrypt'] =="QualcosaltroNo"
+		#COMMENT: Control the graph
+		#req_meta_container.body = catalog_functions.control_graph()
+                #Fake modify of the graph
+                #req_meta_container.body = catalog_functions.add_node(graph)
  
-        #COMMENT: Upload on metacontainer the new version of graph
-        req_meta_container.method = 'PUT'
-        req_meta_container.get_response(self.app)
+            	#COMMENT: Upload on metacontainer the new version of graph
+            	req_meta_container.method = 'PUT'
+            	req_meta_container.get_response(self.app)
 
+	elif req.method == "DELETE":
+	    #TODO
+	    pass
       return self.app(env, start_response)
 
 
