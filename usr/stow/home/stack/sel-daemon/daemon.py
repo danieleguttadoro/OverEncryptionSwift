@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-def application(env, start_response):
-    start_response('200 OK', [('Content-Type','text/html')])
+#def application(env, start_response):
+#    start_response('200 OK', [('Content-Type','text/html')])
     print "                 **** STARTED ****"
-    return [b"Hello World"]
+#    return [b"Hello World"]
