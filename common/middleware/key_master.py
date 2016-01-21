@@ -47,10 +47,11 @@ class key_master(WSGIContext):
        if req.method != "PUT":
 	#Get the catalog from metacontainer
         req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
-	print json_catalog
+	#print json_catalog
 	graph = catalog_functions.load_graph(json_catalog)
+        #newnode = catalog_functions.get_Node(graph,"prova")
         print "-----------------GRAPH-------------------"
-	print graph
+	#print newnode
 	
 
 	if req.method == "GET":
@@ -59,28 +60,29 @@ class key_master(WSGIContext):
 	    #token = catalog_functions.get_DerivPath(catalog_functions.get_graph(json_catalog),"prova")
 	    version , account , container , obj = req.split_path(1,4,True)
 	    print container	
-            cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
+            #cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
 	    print "TOKEN"
-	    print cryptotoken
+	    #print cryptotoken
 	    
 	    #if cryptotoken == '':
 		#raise_error(req,403)
 
-	    if cryptotoken != None:
-	        env['swift_crypto_fetch_crypto_token'] = cryptotoken
-	        
+	    #if cryptotoken != None:
+	        #env['swift_crypto_fetch_crypto_token'] = cryptotoken
+	        #pass
 	    
              
-	elif req.method == "POST":
+	elif True:# req.method == "POST":
 		pass
 	    #if env['overencrypt']=="QualcosaYes"         
 	    
-		#catalog_functions.overencrypt()
-		
+		 #new_graph = catalog_functions.overencrypt(userid,json_catalog,[prova234],[hghoivljpfk9384ghnivu])
+		#req_meta_container.body = new_graph
 	    #else if env['overencrypt'] =="QualcosaltroNo"
+
 		#COMMENT: Control the graph
 		#req_meta_container.body = catalog_functions.control_graph()
-                #Fake modify of the graph
+                
                 #req_meta_container.body = catalog_functions.add_node(graph)
  
             	#COMMENT: Upload on metacontainer the new version of graph

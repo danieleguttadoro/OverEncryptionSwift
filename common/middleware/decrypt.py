@@ -15,21 +15,21 @@ class decrypt(WSGIContext):
         self.conf = conf
 
    def __call__(self, env, start_response):
-        print "----------------- DECRYPT MODULE -----------------------"
-        req = Request(env)
-	resp = req.get_response(self.app)
-        cryptotoken = "ciccio"
-	if env.has_key('cryptotoken'):
-            cryptotoken = env['iik']
+            print "----------------- DECRYPT MODULE -----------------------"
+            req = Request(env)
+	    resp = req.get_response(self.app)
+            cryptotoken = "ciccio"
+	#if env.has_key('cryptotoken'):
+            #cryptotoken = env['iik']
 	    print cryptotoken
             token = decrypt_resource(cryptotoken,get_privatekey())
 	    key = decrypt_resource(get_cryptokey(),token)
 	    response = decrypt_resource(resp.body,key)
 	    last_modified = decrypt_resource(resp.last_modified,key)
 	    resp.content_lenght = len(resp.body)
-	return self.app(env, start_response)  
+	    return self.app(env, start_response)  
         
-def get_cryptokey(token):
+def get_cryptokey():
     print "Retrieve the key ..."
     key = '01234567890123456789012345678901' # 32 char length
     return key

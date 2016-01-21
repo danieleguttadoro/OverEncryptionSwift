@@ -20,20 +20,21 @@ def get_catalog(req,app):
     catalog = req_meta_container.get_response(app)
     return req_meta_container, catalog.body
 
-#added in server
-def add_node(graph):
-    # New node
-    Parent = [elem for elem in graph if elem['NODE'] == "8958ee5ec1b14ca5b19dcbc32bb45409"]
-
-    # Element to be appended
+def create_node(node_child,acl_child,cryptotoken,ownertoken):
     Entry = {}
-    Entry["NODE_CHILD"] = "N"
-    Entry["ACL_CHILD"] = "A"
+    Entry["NODE_CHILD"] = node_child
+    Entry["ACL_CHILD"] = acl_child
     #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
-    Entry["CRYPTOTOKEN"] = "ccc"# TokenDecEscape
-    Entry["OWNERTOKEN"] = "OWN"
+    Entry["CRYPTOTOKEN"] = cryptotoken# TokenDecEscape
+    Entry["OWNERTOKEN"] = ownertoken
     #Entry["VERSIONTOKEN"] = '0'        # Left for future development
     #Entry["TYPE"] = 'USER'
+    return Entry
+
+#added in server
+def add_node(graph,Entry):
+    # New node
+    Parent = [elem for elem in graph if elem['NODE'] == "8958ee5ec1b14ca5b19dcbc32bb45409"]
 
     if len(Parent) == 0:
             # No token exiting from current node exist, also the parent node must be created
@@ -101,7 +102,7 @@ def load_graph(json_data_catalog):
 
 
 #da modificare non == ma nella lista di container
-def get_DerivPath(graph, destination):
+def get_Node(graph, destination):
     """
     Args:
         graph: the graph seen by the user
@@ -110,10 +111,10 @@ def get_DerivPath(graph, destination):
         the path from the root to the destination node
     """
     currDestination = destination
-    for elem in graph:
-       if currDestination == elem['NODE_CHILD']:
-            if tokenIsValid(elem['CRYPTOTOKEN'], elem['OWNERTOKEN']):
-               return elem
+    for entry in [elem for elem in graph]:
+       if currDestination == entry['NODE_CHILD']:
+            if tokenIsValid(entry['CRYPTOTOKEN'], entry['OWNERTOKEN']):
+               return entry
     return None
 
 #NoT USED
@@ -177,9 +178,32 @@ def tokenIsValid(token, owner):
     return True
 
 def get_cryptotoken(catalog, container):
-    myPath = get_DerivPath(get_graph(catalog), container)
+    myPath = get_Node(load_graph(catalog), container)
     if myPath == None:
         return None
     
     return myPath['CRYPTOTOKEN']
-    
+
+def new_cryptotoken(node):
+    #TODO
+    return "aaaaaaaa4"
+
+def overencrypt(userid,catalog,container_list,acl_list):
+    return None
+    global graph
+    graph = load_graph(catalog)
+    new_acl_list = ':'.join(sorted(acl_list))
+    for elem in container_list:
+	node = get_Node(graph,elem)
+	cryptotoken = new_cryptotoken(node)
+	if node == None:
+	    node = create_node(elem,new_acl_list,cryptotoken,userid)
+	    #global graph
+	    graph = add_node(graph,node)
+	else:
+	    cryptotoken = new_cryptotoken(node)
+	    node = create_node(node["NODE_CHILD"],new_acl_list,cryptotoken,node["OWNERTOKEN"])
+	    #global graph
+	    graph = add_node(graph,node)
+
+    return graph
