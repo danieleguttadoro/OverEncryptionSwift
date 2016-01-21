@@ -42,16 +42,15 @@ class key_master(WSGIContext):
       print username
       print userid
       #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
-      if username != "ceilometer":
+      if username != "ceilometer" and username != None:
       
        if req.method != "PUT":
 	#Get the catalog from metacontainer
-        req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
+        #req_meta_containet, json_catalog = catalog_functions.get_catalog(req,self.app)
 	#print json_catalog
-	graph = catalog_functions.load_graph(json_catalog)
-        #newnode = catalog_functions.get_Node(graph,"prova")
+	#graph = catalog_functions.load_graph(json_catalog)
         print "-----------------GRAPH-------------------"
-	#print newnode
+	print graph
 	
 
 	if req.method == "GET":
@@ -73,11 +72,12 @@ class key_master(WSGIContext):
 	    
              
 	elif True:# req.method == "POST":
-		pass
 	    #if env['overencrypt']=="QualcosaYes"         
 	    
-		 #new_graph = catalog_functions.overencrypt(userid,json_catalog,[prova234],[hghoivljpfk9384ghnivu])
-		#req_meta_container.body = new_graph
+		#new_graph = catalog_functions.overencrypt(userid,json_catalog,["prova234"],["hghoivljpfk9384ghnivu"])
+		#print "--------------NEWGRAPH---------------"
+	        #print new_graph
+                #req_meta_container.body = new_graph
 	    #else if env['overencrypt'] =="QualcosaltroNo"
 
 		#COMMENT: Control the graph

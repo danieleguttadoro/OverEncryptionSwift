@@ -32,30 +32,26 @@ def create_node(node_child,acl_child,cryptotoken,ownertoken):
     return Entry
 
 #added in server
-def add_node(graph,Entry):
+def add_node(graph,Entry,parent,userid):
     # New node
-    Parent = [elem for elem in graph if elem['NODE'] == "8958ee5ec1b14ca5b19dcbc32bb45409"]
-
+    Parent = [elem for elem in graph if elem.has_key('NODE') and elem['NODE'] == parent ]
     if len(Parent) == 0:
             # No token exiting from current node exist, also the parent node must be created
-            CatGrEntry = {}
-            CatGrEntry["NODE"] = "newuser"
-            CatGrEntry["ACL"] = "newuser"
+	    CatGrEntry = {}
+            CatGrEntry["NODE"] = parent
+            CatGrEntry["ACL"] = parent
             CatDtEntryList = []
             CatDtEntryList.append(Entry)
             CatGrEntry["TOKEN"] = CatDtEntryList
             graph.append(CatGrEntry)
     else:
 	    # The source node already exists. Only the destination+token must be appended
-            CatGrEntry = {}
-            CatGrEntry["NODE"] = "Node"
-            CatGrEntry["ACL"] = "newuser"
-            for elem in [elem for elem in graph if elem['NODE'] == "8958ee5ec1b14ca5b19dcbc32bb45409"]:
+            for elem in [elem for elem in graph if elem['NODE'] == parent]:
                 Parent[0]['TOKEN'].append(Entry)
 
     NewEntry = {}
     NewEntry["TYPE_ENTITY"] = "USER"
-    NewEntry["ID_ENTITITY"] = "iduser"
+    NewEntry["ID_ENTITITY"] = userid
     NewEntry["NODES"] = graph
     EntryWrite = NewEntry
     return json.dumps(EntryWrite, indent=4, sort_keys=True)
@@ -105,16 +101,19 @@ def load_graph(json_data_catalog):
 def get_Node(graph, destination):
     """
     Args:
-        graph: the graph seen by the user
+        graph: the graph seen by the user (obtained by load_graph)
         container
     Returns:
         the path from the root to the destination node
     """
     currDestination = destination
-    for entry in [elem for elem in graph]:
-       if currDestination == entry['NODE_CHILD']:
-            if tokenIsValid(entry['CRYPTOTOKEN'], entry['OWNERTOKEN']):
-               return entry
+    for entry in graph:
+       if entry.has_key('TOKEN'):
+        elem = entry["TOKEN"]
+        for element in elem:
+          if currDestination == element['NODE_CHILD']:
+            if tokenIsValid(element['CRYPTOTOKEN'], element['OWNERTOKEN']):
+               return element
     return None
 
 #NoT USED
@@ -189,7 +188,6 @@ def new_cryptotoken(node):
     return "aaaaaaaa4"
 
 def overencrypt(userid,catalog,container_list,acl_list):
-    return None
     global graph
     graph = load_graph(catalog)
     new_acl_list = ':'.join(sorted(acl_list))
@@ -198,12 +196,10 @@ def overencrypt(userid,catalog,container_list,acl_list):
 	cryptotoken = new_cryptotoken(node)
 	if node == None:
 	    node = create_node(elem,new_acl_list,cryptotoken,userid)
-	    #global graph
-	    graph = add_node(graph,node)
+	    graph = add_node(graph,node,userid,userid)
 	else:
 	    cryptotoken = new_cryptotoken(node)
 	    node = create_node(node["NODE_CHILD"],new_acl_list,cryptotoken,node["OWNERTOKEN"])
-	    #global graph
-	    graph = add_node(graph,node)
+	    graph = add_node(graph,node,userid,userid)
 
     return graph
