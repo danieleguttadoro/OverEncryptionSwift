@@ -7,6 +7,9 @@ from multiprocessing import Process, Pipe
 #print('Value [%d] sent by PID [%d]' % (value, os.getpid()))
 #conn.close()
 
+n_ini = 8
+ctrl_list = []
+
 def consumer_task():
 
     while (True):
@@ -29,6 +32,16 @@ def consumer_task():
         print(' [*] Waiting for messages. To exit press CTRL+C')
         channel.start_consuming()
 
+def create_consumer(n):
+    
+    for i in range(1,n):
+        pid = os.fork()
+        if pid:
+            ctrl_list.append(pid)
+        else: consumer_task()
+    
+    return
+
 if __name__ == '__main__':
     #producer_conn, consumer_conn = Pipe()
     #consumer = Process(target=consumer_task,args=(consumer_conn,))
@@ -38,14 +51,7 @@ if __name__ == '__main__':
     #consumer.join()
     #control.join()
 
-    n_ini = 8
-    ctrl_list = []
-    
-    for i in range(1,n_ini+1):
-        pid = os.fork()
-        if pid:
-            ctrl_list.append(pid)
-        else: consumer_task()
+    create_consumer(n_ini+1)
 
     while(True):
 
@@ -75,19 +81,11 @@ if __name__ == '__main__':
                     ctrl_list.remove(pid)
                     print ('             **** DELETED IDLE [%d] ****' % (pid))
         elif -count_sleep > ctrlen*3/4:
-            for i in range (1,ctrlen/2):        
-                pid = os.fork()
-                if pid:
-                    ctrl_list.append(pid)
-                else: consumer_task()
-                print ('             **** CREATED HALF [%d] ****' % (pid))
+            create_consumer(ctrlen/2)
+            print ('             **** CREATED HALF [%d] ****' % (pid))
         elif -count_sleep > ctrlen/2:
-            for i in range (1,ctrlen/3):        
-                pid = os.fork()
-                if pid:
-                    ctrl_list.append(pid)
-                else: consumer_task()
-                print ('             **** CREATED THIRD [%d] ****' % (pid))
+            create_consumer(ctrlen/3)
+            print ('             **** CREATED THIRD [%d] ****' % (pid))
 
         time.sleep(3)
 
