@@ -32,9 +32,8 @@ class key_master(WSGIContext):
         channel.confirm_delivery()
  
         print " *********** INVIO MESSAGGI *************"
-        print username
-
-        time.sleep(4)
+        print Request(env).headers
+        time.sleep(8)
 
         try:
             for i in range(1,2):
