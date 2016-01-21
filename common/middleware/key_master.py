@@ -6,7 +6,7 @@ from swift.common.wsgi import WSGIContext
 
 from swift.common.swob import wsgify
 
-import pika
+import pika, time
 
 
 class key_master(WSGIContext):
@@ -22,7 +22,7 @@ class key_master(WSGIContext):
    def __call__(self, env, start_response):
         print "----------------- KEY_MASTER -----------------------"
         
-        username = env.get('HTTP_X_USER_NAME',None)
+        username = env.get('HTTP_X_USER_NAME','ciccio')
         
         connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
@@ -31,9 +31,13 @@ class key_master(WSGIContext):
        
         channel.confirm_delivery()
  
-        i = 0
+        print " *********** INVIO MESSAGGI *************"
+        print username
+
+        time.sleep(4)
+
         try:
-            for i in range(1,10):
+            for i in range(1,2):
                 channel.basic_publish(exchange='',
                       routing_key='daemon',
                       body='Hello World!'+str(i),
@@ -41,9 +45,10 @@ class key_master(WSGIContext):
                          delivery_mode = 2, # make message persistent
                       ))
         
-             print(" [x] Sent 'Hello World!'")
+            print(" [x] Sent 'Hello World!'")
         except pika.exceptions.ConnectionClosed as exc:
             print('Error. Connection closed, and the message was never delivered.')
+
         connection.close()
 
               

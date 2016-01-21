@@ -1,11 +1,5 @@
 import os, sys, psutil, time, pika
-from multiprocessing import Process, Pipe
-
-#def control_task(conn):
-#value = random.randint(1, 10)
-#conn.send(value)
-#print('Value [%d] sent by PID [%d]' % (value, os.getpid()))
-#conn.close()
+from multiprocessing import Process
 
 def consumer_task():
 
@@ -16,6 +10,13 @@ def consumer_task():
         channel = connection.channel()
         channel.queue_declare(queue='daemon', durable=True)
             
+        def callback(ch, method, properties, body):
+        
+            print(" [x] Received %r" % body)
+            time.sleep(body.count(b'.'))
+            print(" [x] Done")
+            ch.basic_ack(delivery_tag = method.delivery_tag)
+        
         channel.basic_qos(prefetch_count=1)    
         channel.basic_consume(callback,
                       queue='daemon')
@@ -23,23 +24,16 @@ def consumer_task():
         print(' [*] Waiting for messages. To exit press CTRL+C')
         channel.start_consuming()
 
-def callback(ch, method, properties, body):
-    
-    print(" [x] Received %r [%d]" % (body,os.getpid()))
-    time.sleep(body.count(b'.'))
-    print(" [x] Done [%d]" % os.getpid())
-    ch.basic_ack(delivery_tag = method.delivery_tag)
-        
 def create_consumer(n,clist):
     
-    #for i in range(1,n):
+    for i in range(1,n):
         pid = os.fork()
         if pid:
             clist.append(pid)
         else: consumer_task()
         print ('             **** CREATED [%d] ****' % (pid))
     
-        return
+    return
 
 def kill_consumer(clist):
 
@@ -73,13 +67,6 @@ def check_status():
     return count
 
 if __name__ == '__main__':
-    #producer_conn, consumer_conn = Pipe()
-    #consumer = Process(target=consumer_task,args=(consumer_conn,))
-    #control = Process(target=control_task,args=(consumer_conn,))
-    #consumer.start()
-    #control.start()
-    #consumer.join()
-    #control.join()
 
     N_INI = 8
     ctrl_list = []
@@ -104,4 +91,4 @@ if __name__ == '__main__':
 
         time.sleep(3)
 
-    #never reached??
+    # never reached
