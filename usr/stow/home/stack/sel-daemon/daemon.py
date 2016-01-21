@@ -7,9 +7,6 @@ from multiprocessing import Process, Pipe
 #print('Value [%d] sent by PID [%d]' % (value, os.getpid()))
 #conn.close()
 
-n_ini = 8
-ctrl_list = []
-
 def consumer_task():
 
     while (True):
@@ -17,30 +14,62 @@ def consumer_task():
         connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
         channel = connection.channel()
-        channel.queue_declare(queue='hello', durable=True)
+        channel.queue_declare(queue='daemon', durable=True)
             
-        def callback(ch, method, properties, body):
-            print(" [x] Received %r" % body)
-            time.sleep(body.count(b'.'))
-            print(" [x] Done")
-            ch.basic_ack(delivery_tag = method.delivery_tag)
         
         channel.basic_qos(prefetch_count=1)    
         channel.basic_consume(callback,
-                      queue='hello')
+                      queue='daemon')
 
         print(' [*] Waiting for messages. To exit press CTRL+C')
         channel.start_consuming()
 
-def create_consumer(n):
+def callback(ch, method, properties, body):
+    
+    print(" [x] Received %r" % body)
+    time.sleep(body.count(b'.'))
+    print(" [x] Done")
+    ch.basic_ack(delivery_tag = method.delivery_tag)
+
+def create_consumer(n,clist):
     
     for i in range(1,n):
         pid = os.fork()
         if pid:
-            ctrl_list.append(pid)
+            clist.append(pid)
         else: consumer_task()
     
     return
+
+def kill_consumer(clist):
+
+    i = 0
+
+    for pid in clist:
+        if i >= ctrlen/4:
+            break
+        proc = psutil.Process(pid)
+        if proc.status == psutil.STATUS_SLEEPING:
+            proc.kill()
+            i += 1
+            clist.remove(pid)
+
+    return
+
+def check_status():
+
+    count = 0
+
+    for pid in ctrl_list:
+        proc = psutil.Process(pid)
+        print(' PID [%d] status [%s]' % (pid, proc.status))
+        if proc.status == psutil.STATUS_SLEEPING:
+            count += 1
+        elif proc.status == psutil.STATUS_RUNNING:
+            count -= 1
+        else: sys.stderr.write('Error on Process Status')
+
+    return count
 
 if __name__ == '__main__':
     #producer_conn, consumer_conn = Pipe()
@@ -51,40 +80,26 @@ if __name__ == '__main__':
     #consumer.join()
     #control.join()
 
-    create_consumer(n_ini+1)
+    N_INI = 8
+    ctrl_list = []
+
+    create_consumer(N_INI+1,ctrl_list)
 
     while(True):
 
-        count_sleep = 0
-
-        for pid in ctrl_list:
-             proc = psutil.Process(pid)
-             print(' PID [%d] status [%s]' % (pid, proc.status))
-             if proc.status == psutil.STATUS_SLEEPING:
-                count_sleep += 1
-             elif proc.status == psutil.STATUS_RUNNING:
-                count_sleep -= 1
-             else: sys.stderr.write('Error on Process Status')
+        count_sleep = check_status()
 
         ctrlen = len(ctrl_list)
         threshold = 3/4*ctrlen
 
-        if (count_sleep > threshold and count_sleep > n_ini):
-            i = 0
-            for pid in ctrl_list:
-                if i >= ctrlen/4:
-                    break
-                proc = psutil.Process(pid)
-                if proc.status == psutil.STATUS_SLEEPING:
-                    proc.kill()
-                    i += 1
-                    ctrl_list.remove(pid)
-                    print ('             **** DELETED IDLE [%d] ****' % (pid))
+        if count_sleep > threshold and count_sleep > N_INI:
+            kill_consumer(ctrl_list)
+            print ('             **** DELETED IDLE [%d] ****' % (pid))
         elif -count_sleep > ctrlen*3/4:
-            create_consumer(ctrlen/2)
+            create_consumer(ctrlen/2,ctrl_list)
             print ('             **** CREATED HALF [%d] ****' % (pid))
         elif -count_sleep > ctrlen/2:
-            create_consumer(ctrlen/3)
+            create_consumer(ctrlen/3,ctrl_list)
             print ('             **** CREATED THIRD [%d] ****' % (pid))
 
         time.sleep(3)
