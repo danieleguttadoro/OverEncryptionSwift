@@ -43,7 +43,7 @@ def add_node(graph,Entry,parent,userid):
             CatDtEntryList = []
             CatDtEntryList.append(Entry)
             CatGrEntry["TOKEN"] = CatDtEntryList
-            graph.append(CatGrEntry)
+            graph['NODES']=CatGrEntry
     else:
 	    # The source node already exists. Only the destination+token must be appended
             for elem in [elem for elem in graph if elem['NODE'] == parent]:
@@ -107,13 +107,14 @@ def get_Node(graph, destination):
         the path from the root to the destination node
     """
     currDestination = destination
-    for entry in graph:
-       if entry.has_key('TOKEN'):
-        elem = entry["TOKEN"]
-        for element in elem:
-          if currDestination == element['NODE_CHILD']:
-            if tokenIsValid(element['CRYPTOTOKEN'], element['OWNERTOKEN']):
-               return element
+    for entry in [elem for elem in graph]:
+        #if entry.has_key('TOKEN'):
+       elem = entry['TOKEN']
+       print "aaa"
+       print elem
+       if currDestination == elem['NODE_CHILD']:
+            if tokenIsValid(elem['CRYPTOTOKEN'], elem['OWNERTOKEN']):
+               return elem
     return None
 
 #NoT USED
