@@ -16,7 +16,6 @@ def consumer_task():
         channel = connection.channel()
         channel.queue_declare(queue='daemon', durable=True)
             
-        
         channel.basic_qos(prefetch_count=1)    
         channel.basic_consume(callback,
                       queue='daemon')
@@ -26,20 +25,21 @@ def consumer_task():
 
 def callback(ch, method, properties, body):
     
-    print(" [x] Received %r" % body)
+    print(" [x] Received %r [%d]" % (body,os.getpid()))
     time.sleep(body.count(b'.'))
-    print(" [x] Done")
+    print(" [x] Done [%d]" % os.getpid())
     ch.basic_ack(delivery_tag = method.delivery_tag)
-
+        
 def create_consumer(n,clist):
     
-    for i in range(1,n):
+    #for i in range(1,n):
         pid = os.fork()
         if pid:
             clist.append(pid)
         else: consumer_task()
+        print ('             **** CREATED [%d] ****' % (pid))
     
-    return
+        return
 
 def kill_consumer(clist):
 
@@ -53,6 +53,7 @@ def kill_consumer(clist):
             proc.kill()
             i += 1
             clist.remove(pid)
+            print ('             **** DELETED IDLE [%d] ****' % (pid))
 
     return
 
@@ -62,7 +63,7 @@ def check_status():
 
     for pid in ctrl_list:
         proc = psutil.Process(pid)
-        print(' PID [%d] status [%s]' % (pid, proc.status))
+        # print(' PID [%d] status [%s]' % (pid, proc.status))
         if proc.status == psutil.STATUS_SLEEPING:
             count += 1
         elif proc.status == psutil.STATUS_RUNNING:
@@ -94,13 +95,12 @@ if __name__ == '__main__':
 
         if count_sleep > threshold and count_sleep > N_INI:
             kill_consumer(ctrl_list)
-            print ('             **** DELETED IDLE [%d] ****' % (pid))
         elif -count_sleep > ctrlen*3/4:
+            print "qui qui qui qui"
             create_consumer(ctrlen/2,ctrl_list)
-            print ('             **** CREATED HALF [%d] ****' % (pid))
         elif -count_sleep > ctrlen/2:
+            print "qua qua qua qua qua"
             create_consumer(ctrlen/3,ctrl_list)
-            print ('             **** CREATED THIRD [%d] ****' % (pid))
 
         time.sleep(3)
 

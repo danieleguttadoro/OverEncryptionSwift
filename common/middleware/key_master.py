@@ -24,39 +24,29 @@ class key_master(WSGIContext):
         
         username = env.get('HTTP_X_USER_NAME',None)
         
-        if username != "admin":
-            connection = pika.BlockingConnection(pika.ConnectionParameters(
+        connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
-            channel = connection.channel()
-            channel.queue_declare(queue='hello', durable=True)
-        
-            channel.basic_publish(exchange='',
-                      routing_key='hello',
-                      body='Hello World!',
+        channel = connection.channel()
+        channel.queue_declare(queue='daemon', durable=True)
+       
+        channel.confirm_delivery()
+ 
+        i = 0
+        try:
+            for i in range(1,10):
+                channel.basic_publish(exchange='',
+                      routing_key='daemon',
+                      body='Hello World!'+str(i),
                       properties=pika.BasicProperties(
-                         delivery_mode = 2, # make message persistent, however it isn't guarantee that the message won't be lost (see 'Note on message persistence' in https://www.rabbitmq.com/tutorials/tutorial-two-python.html)
+                         delivery_mode = 2, # make message persistent
                       ))
-            print(" [x] Sent 'Hello World!'")
-            connection.close()
+        
+             print(" [x] Sent 'Hello World!'")
+        except pika.exceptions.ConnectionClosed as exc:
+            print('Error. Connection closed, and the message was never delivered.')
+        connection.close()
 
               
-        if username != "demo":
-            connection = pika.BlockingConnection(pika.ConnectionParameters(
-               'localhost'))
-            channel = connection.channel()
-            channel.queue_declare(queue='hello', durable=True)
-            
-            def callback(ch, method, properties, body):
-                print(" [x] Received %r" % body)
-                time.sleep(body.count(b'.'))
-                print(" [x] Done")
-                ch.basic_ack(delivery_tag = method.delivery_tag)
-            
-            channel.basic_consume(callback,
-                      queue='hello')
-
-            print(' [*] Waiting for messages. To exit press CTRL+C')
-            channel.start_consuming()
         return self.app(env, start_response)
 """        
         req = Request(env)
