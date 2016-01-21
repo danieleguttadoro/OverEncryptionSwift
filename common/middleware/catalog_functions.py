@@ -74,8 +74,9 @@ def get_graph(json_data_catalog):
 
     def foo(x):
         for child in x['TOKEN']:
-            child['NODE'] = x['NODE']
-            child['ACL'] = x['ACL']
+	    pass
+            #child['NODE'] = x['NODE']
+            #child['ACL'] = x['ACL']
         return x['TOKEN']
 
     CatGraph = map(foo, json_data['NODES'])
@@ -106,15 +107,15 @@ def get_Node(graph, destination):
     Returns:
         the path from the root to the destination node
     """
+	
     currDestination = destination
-    for entry in [elem for elem in graph]:
-        #if entry.has_key('TOKEN'):
-       elem = entry['TOKEN']
-       print "aaa"
-       print elem
-       if currDestination == elem['NODE_CHILD']:
-            if tokenIsValid(elem['CRYPTOTOKEN'], elem['OWNERTOKEN']):
-               return elem
+    for elem in graph:
+       if elem.has_key('TOKEN'):
+         entry = elem['TOKEN']
+         for ent in entry:	
+          if currDestination == ent['NODE_CHILD']:
+            if tokenIsValid(ent['CRYPTOTOKEN'], ent['OWNERTOKEN']):
+               return ent
     return None
 
 #NoT USED
@@ -140,6 +141,18 @@ def majorChild(graph, new_node_Acl):
                 majChl = node['NODE_CHILD']
                 majChlACL = node['ACL_CHILD']
     return majChl, majChlACL
+
+def remove_node(graph,node):
+    currContainer = node['NODE_CHILD']
+    for elem in graph:
+       if elem.has_key('TOKEN'):
+         entry = elem['TOKEN']
+         for ent in entry:
+          if currDestination == ent['NODE_CHILD']:
+            del ent
+            return graph
+    return graph
+
 
 #NOT USED
 def browsePath(userID, MyPath):
@@ -201,6 +214,7 @@ def overencrypt(userid,catalog,container_list,acl_list):
 	else:
 	    cryptotoken = new_cryptotoken(node)
 	    node = create_node(node["NODE_CHILD"],new_acl_list,cryptotoken,node["OWNERTOKEN"])
+	    graph = remove_node(graph,node)
 	    graph = add_node(graph,node,userid,userid)
 
     return graph

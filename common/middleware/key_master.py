@@ -49,8 +49,10 @@ class key_master(WSGIContext):
         req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
 	#print json_catalog
 	graph = catalog_functions.load_graph(json_catalog)
+	graph2 =  catalog_functions.get_graph(json_catalog)
         print "-----------------GRAPH-------------------"
 	print graph
+	print graph2
 	
 
 	if req.method == "GET":
@@ -73,8 +75,8 @@ class key_master(WSGIContext):
              
 	elif True:# req.method == "POST":
 	    #if env['overencrypt']=="QualcosaYes"         
-	    
-		new_graph = catalog_functions.overencrypt(userid,json_catalog,["prova234"],["hghoivljpfk9384ghnivu"])
+	     
+		new_graph = catalog_functions.overencrypt(userid,json_catalog,["111111prova234"],["hghoivljpfk9384ghnivu"])
 		print "--------------NEWGRAPH---------------"
 	        print new_graph
                 #req_meta_container.body = new_graph
@@ -86,8 +88,8 @@ class key_master(WSGIContext):
                 #req_meta_container.body = catalog_functions.add_node(graph)
  
             	#COMMENT: Upload on metacontainer the new version of graph
-            	#req_meta_container.method = 'PUT'
-            	#req_meta_container.get_response(self.app)
+            	req_meta_container.method = 'PUT'
+            	req_meta_container.get_response(self.app)
 
 	elif req.method == "DELETE":
 	    #TODO
