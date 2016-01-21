@@ -148,8 +148,8 @@ def remove_node(graph,node):
        if elem.has_key('TOKEN'):
          entry = elem['TOKEN']
          for ent in entry:
-          if currDestination == ent['NODE_CHILD']:
-            del ent
+          if currContainer == ent['NODE_CHILD']:
+            entry.remove(ent)
             return graph
     return graph
 
