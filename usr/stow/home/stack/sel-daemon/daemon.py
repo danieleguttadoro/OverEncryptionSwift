@@ -1,5 +1,11 @@
 import os, sys, psutil, time, pika
 from multiprocessing import Process
+#from keystoneclient.v3 import client
+#from keystoneclient import session
+#from keystoneclient.auth import base
+#from swift.proxy import server
+import  swiftclient
+
 
 def consumer_task():
 
@@ -14,6 +20,7 @@ def consumer_task():
         channel.basic_consume(callback,
                       queue='daemon')
 
+        #print swift_conn.head_account()
         print(' [*] Waiting for messages. To exit press CTRL+C')
         channel.start_consuming()
 
@@ -27,7 +34,7 @@ def callback(ch, method, properties, body):
     
     #time.sleep(body.count(b'.'))
     #req = Request.blank()
-    
+     
 
     print(" [x] Done")
     ch.basic_ack(delivery_tag = method.delivery_tag)
@@ -68,7 +75,7 @@ def check_status():
 
     for pid in ctrl_list:
         proc = psutil.Process(pid)
-        # print(' PID [%d] status [%s]' % (pid, proc.status))
+        print(' PID [%d] status [%s]' % (pid, proc.status))
         if proc.status == psutil.STATUS_SLEEPING:
             count += 1
         elif proc.status == psutil.STATUS_RUNNING:
@@ -80,6 +87,27 @@ def check_status():
 
 if __name__ == '__main__':
 
+    swift_conn = swiftclient.client.Connection(
+            user= 'admin', key= 'secretsecret', authurl= 'http://localhost:5000/v3',
+            tenant_name= 'admin', auth_version='3')
+
+    print swift_conn.head_account()
+
+    """ auth = client.Client(username = 'admin',
+                         password = 'secretsecret',
+                         project_name = 'admin',
+                         auth_url = 'http://localhost:5000/v3')
+
+    x_auth_token = auth.get_headers(None)
+
+    sess = session.Session(auth=auth)
+    
+    auth_plugin = base.BaseAuthPlugin()
+    
+    x_auth_token = auth_plugin.get_headers(sess)
+
+    print ('AUTH: [%s]' % x_auth_token)
+    """
     N_INI = 8
     ctrl_list = []
 
@@ -102,6 +130,6 @@ if __name__ == '__main__':
             create_consumer(ctrlen/3,ctrl_list)
 
         time.sleep(3)
-
+    
     # never reached
-    return
+   
