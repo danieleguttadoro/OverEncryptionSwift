@@ -137,17 +137,18 @@ def majorChild(graph, new_node_Acl):
                 majChlACL = node['ACL_CHILD']
     return majChl, majChlACL
 
-def remove_node(graph,container):
+def remove_node(graph,container,userid):
     currContainer = container
     for elem in graph:
        if elem.has_key('TOKEN'):
          entry = elem['TOKEN']
          for ent in entry:
           if currContainer == ent['NODE_CHILD']:
-            entry.remove(ent)
-            return graph
+           entry.remove(ent)
+ 	   break
+         break
+ 
     return graph
-
 
 #NOT USED
 def browsePath(userID, MyPath):
@@ -192,13 +193,17 @@ def get_cryptotoken(catalog, container):
     
     return myPath['CRYPTOTOKEN']
 
-def control_graph(catalog,container_list):
+def control_graph(catalog,container_list,userid):
      global graph
      graph = load_graph(catalog)
      for cont in container_list:
-	graph = remove_node(graph,cont)
-
-     return graph
+	graph = remove_node(graph,cont,userid)
+     Entry = {}
+     Entry["TYPE_ENTITY"] = "USER"
+     Entry["ID_ENTITITY"] = userid
+     Entry["NODES"] = graph
+     return json.dumps(Entry, indent=4, sort_keys=True)
+ 
 
 def new_cryptotoken(node):
     #TODO
@@ -215,7 +220,7 @@ def overencrypt(userid,catalog,container_list,acl_list):
 	  node = create_node(elem,new_acl_list,cryptotoken,userid)
 	  graph = add_node(graph,node,userid,userid)
         else:
-	  graph = remove_node(graph,elem)
+	  graph = remove_node(graph,elem,userid)
 	  node = create_node(node["NODE_CHILD"],new_acl_list,cryptotoken,node["OWNERTOKEN"])
 	  graph = add_node(graph,node,userid,userid)
     return graph
