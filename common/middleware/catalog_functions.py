@@ -214,13 +214,8 @@ def overencrypt(userid,catalog,container_list,acl_list):
     graph = load_graph(catalog)
     new_acl_list = ':'.join(sorted(acl_list))
     for elem in container_list:
-	node = get_Node(graph,elem)
-	cryptotoken = new_cryptotoken(node)
-        if node == None:
-	  node = create_node(elem,new_acl_list,cryptotoken,userid)
-	  graph = add_node(graph,node,userid,userid)
-        else:
-	  graph = remove_node(graph,elem,userid)
-	  node = create_node(node["NODE_CHILD"],new_acl_list,cryptotoken,node["OWNERTOKEN"])
-	  graph = add_node(graph,node,userid,userid)
+	cryptotoken = new_cryptotoken(userid)
+	graph = remove_node(graph,elem,userid)
+	node = create_node(elem,new_acl_list,cryptotoken,userid)
+	graph = add_node(graph,node,userid,userid)
     return graph

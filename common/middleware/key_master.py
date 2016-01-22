@@ -74,13 +74,13 @@ class key_master(WSGIContext):
 		
 	    #if env['overencrypt']=="QualcosaYes"         
 	     
-		#new_graph = catalog_functions.overencrypt(userid,json_catalog,["22222211prova234"],["rreeeeeeeeefk9384ghnivu"])
-                #req_meta_container.body = new_graph
+		new_graph = catalog_functions.overencrypt(userid,json_catalog,["22222211prova234"],["rreeeeeeeeefk9384ghnivu"])
+                req_meta_container.body = new_graph
 	    #else if env['overencrypt'] =="QualcosaltroNo"
 
 		#COMMENT: Control the graph
-		new_graph2 = catalog_functions.control_graph(json_catalog,["prova234"],userid)
-		req_meta_container.body = new_graph2
+		#new_graph2 = catalog_functions.control_graph(json_catalog,["prova234"],userid)
+		#req_meta_container.body = new_graph2
 
 		#COMMENT: Upload on metacontainer the new version of graph
             	req_meta_container.method = 'PUT'
