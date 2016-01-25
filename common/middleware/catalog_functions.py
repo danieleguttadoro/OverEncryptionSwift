@@ -36,18 +36,18 @@ def add_node(graph,Entry,parent,userid):
     # New node
     Parent = [elem for elem in graph if elem.has_key('NODE') and elem['NODE'] == parent ]
     if len(Parent) == 0:
-            # No token exiting from current node exist, also the parent node must be created
-	    CatGrEntry = {}
-            CatGrEntry["NODE"] = parent
-            CatGrEntry["ACL"] = parent
-            CatDtEntryList = []
-            CatDtEntryList.append(Entry)
-            CatGrEntry["TOKEN"] = CatDtEntryList
-            graph['NODES']=CatGrEntry
+        # No token exiting from current node exist, also the parent node must be created
+        CatGrEntry = {}
+        CatGrEntry["NODE"] = parent
+        CatGrEntry["ACL"] = parent
+        CatDtEntryList = []
+        CatDtEntryList.append(Entry)
+        CatGrEntry["TOKEN"] = CatDtEntryList
+        graph['NODES']=CatGrEntry
     else:
 	    # The source node already exists. Only the destination+token must be appended
-            for elem in [elem for elem in graph if elem['NODE'] == parent]:
-                Parent[0]['TOKEN'].append(Entry)
+        for elem in [elem for elem in graph if elem['NODE'] == parent]:
+            Parent[0]['TOKEN'].append(Entry)
 
     NewEntry = {}
     NewEntry["TYPE_ENTITY"] = "USER"
@@ -69,7 +69,7 @@ def get_graph(json_data_catalog):
 
     def foo(x):
         for child in x['TOKEN']:
-	    pass
+	        pass
             #child['NODE'] = x['NODE']
             #child['ACL'] = x['ACL']
         return x['TOKEN']
@@ -140,14 +140,12 @@ def majorChild(graph, new_node_Acl):
 def remove_node(graph,container,userid):
     currContainer = container
     for elem in graph:
-       if elem.has_key('TOKEN'):
-         entry = elem['TOKEN']
-         for ent in entry:
-          if currContainer == ent['NODE_CHILD']:
-           entry.remove(ent)
- 	   break
-         break
- 
+        if elem.has_key('TOKEN'):
+            entry = elem['TOKEN']
+            for ent in entry:
+                if currContainer == ent['NODE_CHILD']:
+                    entry.remove(ent)
+
     return graph
 
 #NOT USED
@@ -161,20 +159,21 @@ def browsePath(userID, MyPath):
     k = None
     for step in MyPath:
         if not k:
-            # First arch (or single arch)
-	    #PROVA
-	    k = step['CRYPTOTOKEN']	
+            # First arch (or single arch
+            #PROVA
+            k = step['CRYPTOTOKEN']	
             #k = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
-                              #sender=step['OWNERTOKEN'], receiver=userID)
+            #sender=step['OWNERTOKEN'], receiver=userID)
             k_prec = k
         else:
-	    token_ciph = step['CRYPTOTOKEN']
+            token_ciph = step['CRYPTOTOKEN']
             #token_ciph = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
-                                      # sender=step['OWNERTOKEN'], receiver=userIDi
+            # sender=step['OWNERTOKEN'], receiver=userIDi
             #k = decrypt_msg(base64.b64decode(token_ciph), k_prec)
             k = step['CRYPTOTOKEN']
-	    k_prec = k
-        lastOwnerToken = step['OWNERTOKEN']
+            k_prec = k
+            lastOwnerToken = step['OWNERTOKEN']
+
     return k, lastOwnerToken
 
 
@@ -197,11 +196,11 @@ def control_graph(catalog,container_list,userid):
      global graph
      graph = load_graph(catalog)
      for cont in container_list:
-	graph = remove_node(graph,cont,userid)
-     Entry = {}
-     Entry["TYPE_ENTITY"] = "USER"
-     Entry["ID_ENTITITY"] = userid
-     Entry["NODES"] = graph
+        graph = remove_node(graph,cont,userid)
+        Entry = {}
+        Entry["TYPE_ENTITY"] = "USER"
+        Entry["ID_ENTITITY"] = userid
+        Entry["NODES"] = graph
      return json.dumps(Entry, indent=4, sort_keys=True)
  
 
@@ -214,8 +213,8 @@ def overencrypt(userid,catalog,container_list,acl_list):
     graph = load_graph(catalog)
     new_acl_list = ':'.join(sorted(acl_list))
     for elem in container_list:
-	cryptotoken = new_cryptotoken(userid)
-	graph = remove_node(graph,elem,userid)
-	node = create_node(elem,new_acl_list,cryptotoken,userid)
-	graph = add_node(graph,node,userid,userid)
+	    cryptotoken = new_cryptotoken(userid)
+	    graph = remove_node(graph,elem,userid)
+	    node = create_node(elem,new_acl_list,cryptotoken,userid)
+	    graph = add_node(graph,node,userid,userid)
     return graph
