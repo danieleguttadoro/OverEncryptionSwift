@@ -21,6 +21,7 @@ class encrypt(WSGIContext):
     def __call__(self, env, start_response):
         print "----------------- ENCRYPT -----------------------"
         
+
         req = Request(env)
         resp = req.get_response(self.app)
         
@@ -28,6 +29,7 @@ class encrypt(WSGIContext):
             pass
             #key = env['swift_crypto_fetch_crypto_key']
             #return encrypt_response(req,key,resp)
+
 
         return self.app(env, start_response)  
 

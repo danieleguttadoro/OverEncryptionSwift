@@ -5,7 +5,6 @@ from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.common.swob import wsgify
 
-
 #To use encswift
 import catalog_functions
 import time
@@ -17,6 +16,7 @@ from barbicanclient import client
 from keystoneclient import session
 from keystoneclient.auth import identity
 ################
+import pika
 
 class key_master(WSGIContext):
 
@@ -27,7 +27,6 @@ class key_master(WSGIContext):
    def __init__(self,app, conf):
         self.app = app
         self.conf = conf
-   
 
    def __call__(self, env, start_response):
       print "----------------- KEY_MASTER -----------------------"
@@ -152,7 +151,67 @@ def barbican_client():
     except:
         traceback.print_exc(file=sys.stdout)
 
+def rabbit_queue(msg):
+        print "----------------- RABBIT_QUEUE -----------------------"
+              
+        connection = pika.BlockingConnection(pika.ConnectionParameters(
+               'localhost'))
+        channel = connection.channel()
+        channel.queue_declare(queue='daemon', durable=True)
+       
+        channel.confirm_delivery()
+ 
+        print " *********** INVIO MESSAGGI *************"
+        
+        try:
+            for i in range(1,2):
+                channel.basic_publish(exchange='',
+                      routing_key='daemon',
+                      body=msg,
+                      properties=pika.BasicProperties(
+                         delivery_mode = 2, # make message persistent
+                      ))
+        
+            print(" [x] Sent [%s]" % msg)
+        except pika.exceptions.ConnectionClosed as exc:
+            print('Error. Connection closed, and the message was never delivered.')
 
+        connection.close()
+
+        return
+"""        
+        req = Request(env)
+        resp = req.get_response(self.app)
+
+        #COMMENT: Finding user and method
+        username = env.get('HTTP_X_USER_NAME',None)
+        #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
+        if username != "ceilometer":
+
+            #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens 
+	        version, account, container, obj = req.split_path(1,4,True)  
+	        path_meta = "/".join(["", version , account , self.meta_container, self.graph_tokens])  
+	        print path_meta
+	        req_meta_container = Request.blank(path_meta,None,req.headers,None)
+	        req_graph = req_meta_container.get_response(self.app)
+	        print req_graph.body
+	     
+        	# COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+            # Example: retrieve the key 
+            print "Retrieve the key ..."
+            key = '01234567890123456789012345678901' # 32 char length
+
+            if key == '':
+                raise_error(req,403)
+            env['swift_crypto_fetch_crypto_key'] = key
+
+            #COMMENT: Modify the graph
+            #Fake modify of the graph
+            req_meta_container.body = "Modifica effettuata"
+
+            #COMMENT: Upload on metacontainer the new version of graph
+            req_meta_container.method = 'PUT'
+            req_meta_container.get_response(self.app)
 
 @wsgify
 def raise_error(req,stat):
@@ -161,7 +220,7 @@ def raise_error(req,stat):
         return Response(request=req, status=403, body="USER UNAUTHORIZED TO OBTAIN THIS FILE",
                         content_type="text/plain")
 
-
+"""
 def filter_factory(global_conf, **local_conf):
     conf = global_conf.copy()
     conf.update(local_conf)
