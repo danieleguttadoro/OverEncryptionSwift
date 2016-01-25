@@ -26,9 +26,6 @@ class decrypt(WSGIContext):
             key = decrypt_resource(crypto_functions.get_cryptokey(),token)
             response = decrypt_resource(resp.body,key)
             last_modified = decrypt_resource(resp.last_modified,key)
-            resp.content_lenght = len(resp.body)
-	    
-        return self.app(env, start_response)  
 
 def filter_factory(global_conf, **local_conf):
     conf = global_conf.copy()

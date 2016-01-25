@@ -53,7 +53,6 @@ def add_node(graph,Entry,parent,userid):
 	    # The source node already exists. Only the destination+token must be appended
         for elem in [elem for elem in graph if elem['NODE'] == parent]:
             Parent[0]['TOKEN'].append(Entry)
-    
     return graph
 
 #Not used?
@@ -197,13 +196,12 @@ def compose_graph(graph,userid):
      Entry["TYPE_ENTITY"] = "USER"
      Entry["ID_ENTITITY"] = userid
      Entry["NODES"] = graph
-     return json.dumps(Entry, indent=4, sort_keys=True)
+     return json.dumps(Entry, indent =4, sort_keys=True)
  
 
 def new_cryptotoken(node):
     #TODO
     return "aaaaaaaa4"
-
 
     #def overencrypt(user,catalog,container_list,acl_list):overencrypt non sappiamo se container list viene passato singolarmente o come ua lista d container
     #    global graph
@@ -249,4 +247,3 @@ def send_message(command,userid,node):
     connection.close()
 
     return
-
