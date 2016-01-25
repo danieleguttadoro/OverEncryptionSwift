@@ -38,54 +38,43 @@ class key_master(WSGIContext):
         #COMMENT: Finding user and method
         username = env.get('HTTP_X_USER_NAME',None)
         userid   = env.get('HTTP_X_USER_ID',None)
-        userid = "9665a758e2544ee3a3eb8b89fd878aa5"
+        #userid = "9665a758e2544ee3a3eb8b89fd878aa5"
         print "------------USERID, USERNAME----------------"
         print username
         print userid
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
-        if username != "ceilometer" and username != None:
-      
-            if req.method != "PUT":
-	            #Get the catalog from metacontainer
-                req_meta_container, json_catalog = catalog_functions.get_catalog(req,self.app)
-	            #print json_catalog
-                graph =  catalog_functions.load_graph(json_catalog)
-	            #graph2 =  catalog_functions.get_graph(json_catalog)
-                print "-----------------GRAPH-------------------"
-	            #print graph
-	            #print graph2
-	
-	        if req.method == "GET":
-	    
-    	        # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
-	            #token = catalog_functions.get_DerivPath(catalog_functions.get_graph(json_catalog),"prova")
-	            version , account , container , obj = req.split_path(1,4,True)
-	            print container	
-                #cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
-	            print "TOKEN"
-	            #print cryptotoken
+        if username != "ceilometer" and username != None and req.method != 'PUT':
+            #Get the catalog from metacontainer
+            req_meta_container, json_catalog , container = catalog_functions.get_catalog(req,self.app)
+            if req.method == "GET":
+                if req_meta_container == None:
+                    send_message("CREATE",userid, None)
+                elif json_catalog == None:
+                    pass #No need overencryption in the past
+                else:
+                    graph =  catalog_functions.load_graph(json_catalog)
+    	            # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+                    cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
+                    print "--------------------CRYPTOTOKEN--------------------"
+                    print cryptotoken
 
-	            #if cryptotoken != None:
-	            #env['swift_crypto_fetch_crypto_token'] = cryptotoken
-	            #pass
-	    
-             
-	        elif True:#req.method == "POST":
-		
-	            #if env['overencrypt']=="QualcosaYes"         
-	     
-		        new_graph = catalog_functions.overencrypt(userid,json_catalog,["22222211prova234"],["rreeeeeeeeefk9384ghnivu"])
-                req_meta_container.body = new_graph
-	            #else if env['overencrypt'] =="QualcosaltroNo"
-
-		        #COMMENT: Control the graph
-		        #new_graph2 = catalog_functions.control_graph(json_catalog,["prova234"],userid)
-		        #req_meta_container.body = new_graph2
-
-		        #COMMENT: Upload on metacontainer the new version of graph
-            	req_meta_container.method = 'PUT'
-            	req_meta_container.get_response(self.app)
-
+                    if cryptotoken != None:
+	                    #env['swift_crypto_fetch_crypto_token'] = cryptotoken
+                        pass	     
+            elif True: #req.method == "HEAD" or req.method== "POST":
+                if True:# env['overencrypt']=="QualcosaYes":         
+                    #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
+                    token = gen_token()
+                    node = create_node(["A","B","C"],container,token,userid)
+                    send_message("INSERT",userid,node)
+                    #Encrypt the resource
+                    old_cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container)
+                    env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
+                    env['swift_crypto_fetch_new_token'] = token
+                elif False:#env['overencrypt'] =="QualcosaltroNo":
+                    node = create_node(None,container,None,userid)
+                    send_message("REMOVE",userid,node)
+		           
             elif req.method == "DELETE":
 	            #TODO
       
@@ -151,35 +140,6 @@ def barbican_client():
 
     except:
         traceback.print_exc(file=sys.stdout)
-
-def rabbit_queue(msg):
-        print "----------------- RABBIT_QUEUE -----------------------"
-              
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
-               'localhost'))
-        channel = connection.channel()
-        channel.queue_declare(queue='daemon', durable=True)
-       
-        channel.confirm_delivery()
- 
-        print " *********** INVIO MESSAGGI *************"
-        
-        try:
-            for i in range(1,2):
-                channel.basic_publish(exchange='',
-                      routing_key='daemon',
-                      body=msg,
-                      properties=pika.BasicProperties(
-                         delivery_mode = 2, # make message persistent
-                      ))
-        
-            print(" [x] Sent [%s]" % msg)
-        except pika.exceptions.ConnectionClosed as exc:
-            print('Error. Connection closed, and the message was never delivered.')
-
-        connection.close()
-
-        return
 """        
         req = Request(env)
         resp = req.get_response(self.app)

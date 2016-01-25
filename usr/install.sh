@@ -4,6 +4,7 @@ sudo cp /home/stack/swift/common/middleware/decrypt.py /opt/stack/swift/swift/co
 sudo cp /home/stack/swift/common/middleware/key_master.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/common/middleware/catalog_functions.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/usr/stow/home/vagrant/.vimrc /home/vagrant/
+sudo cp /home/stack/swift/common/middleware/crypto_functions.py /opt/stack/swift/swift/common/middleware
 sudo mkdir -m 755 -p /opt/stack/sel-daemon/
 #sudo mkdir -m 755 -p /opt/stack/sel-daemon/config
 #sudo mkdir -m 755 -p /opt/stack/sel-daemon/log

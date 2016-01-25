@@ -11,6 +11,7 @@ import base64
 
 from swift.common.http import is_success
 from swift.common.swob import wsgify
+import crypto_functions
 
 class encrypt(WSGIContext):
 
@@ -24,13 +25,23 @@ class encrypt(WSGIContext):
 
         req = Request(env)
         resp = req.get_response(self.app)
-        
-        if is_success(resp.status_int) and req.method == 'GET':
-            pass
-            #key = env['swift_crypto_fetch_crypto_key']
+        resource = resp.body
+        """if is_success(resp.status_int):
+            old_cryptotoken = env.get('swift_crypto_fetch_old_crypto_token',None)
+            if old_cryptotoken != None:
+                token = crypto_functions.decrypt_resource(old_cryptotoken,crypto_functions.get_privatekey())
+                key = crypto_functions.decrypt_resource(crypto_functions.get_cryptokey(),token)
+                resource = crypto_functions.decrypt_resource(resp.body,key)
+                #Da aggiungere last_modified e content length
+            
+            #Encrypt resource
+            token = env.get('swift_crypto_fetch_new_token',None)
+            if token != None:
+                cryptokey = crypto_functions.encrypt_resource(crypto_functions.get_key(),token)
+                #da terminare
             #return encrypt_response(req,key,resp)
 
-
+        """    
         return self.app(env, start_response)  
 
     @wsgify

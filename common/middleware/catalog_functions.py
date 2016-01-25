@@ -4,7 +4,6 @@ import json
 import base64
 from itertools import *
 from swift.common.swob import Request
-#from crypto_functions import *
 
 # Names of meta container and file of the graph
 meta_container = "meta"
@@ -14,16 +13,22 @@ graph_tokens = "b"
 def get_catalog(req,app):
     #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens
     version, account, container, obj = req.split_path(1,4,True)
-    path_meta = "/".join(["", version , account , meta_container, graph_tokens])
-    print path_meta
-    req_meta_container = Request.blank(path_meta,None,req.headers,None)
-    catalog = req_meta_container.get_response(app)
-    return req_meta_container, catalog.body
+    path_meta_container = "/".join(["", version , account , meta_container])
+    path_catalog = "/".join(["", version , account , meta_container, graph_tokens])
+    
+    req_meta_container = Request.blank(path_meta_container,None,req.headers,None)
+    res_meta_container = req_meta_container.get_response(app)
+    if res_meta_container == None:
+        return None, None, None
+    
+    req_catalog = Request.blank(path_catalog,None,req.headers,None)
+    res_catalog = req_catalog.get_response(app)
+    return req_catalog ,res_catalog.body, container
 
 def create_node(node_child,acl_child,cryptotoken,ownertoken):
     Entry = {}
     Entry["NODE_CHILD"] = node_child
-    Entry["ACL_CHILD"] = acl_child
+    Entry["ACL_CHILD"] = stringToList(acl_child)
     #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
     Entry["CRYPTOTOKEN"] = cryptotoken# TokenDecEscape
     Entry["OWNERTOKEN"] = ownertoken
@@ -48,14 +53,10 @@ def add_node(graph,Entry,parent,userid):
 	    # The source node already exists. Only the destination+token must be appended
         for elem in [elem for elem in graph if elem['NODE'] == parent]:
             Parent[0]['TOKEN'].append(Entry)
+    
+    return graph
 
-    NewEntry = {}
-    NewEntry["TYPE_ENTITY"] = "USER"
-    NewEntry["ID_ENTITITY"] = userid
-    NewEntry["NODES"] = graph
-    EntryWrite = NewEntry
-    return json.dumps(EntryWrite, indent=4, sort_keys=True)
-
+#Not used?
 def get_graph(json_data_catalog):
     """
     Read the catalog (simple version, without further browse) and build the graph.
@@ -93,8 +94,7 @@ def load_graph(json_data_catalog):
     return json_cat['NODES']
 
 
-#da modificare non == ma nella lista di container
-def get_Node(graph, destination):
+def get_node(graph, destination):
     """
     Args:
         graph: the graph seen by the user (obtained by load_graph)
@@ -137,7 +137,7 @@ def majorChild(graph, new_node_Acl):
                 majChlACL = node['ACL_CHILD']
     return majChl, majChlACL
 
-def remove_node(graph,container,userid):
+def remove_node(graph,container):
     currContainer = container
     for elem in graph:
         if elem.has_key('TOKEN'):
@@ -192,15 +192,11 @@ def get_cryptotoken(catalog, container):
     
     return myPath['CRYPTOTOKEN']
 
-def control_graph(catalog,container_list,userid):
-     global graph
-     graph = load_graph(catalog)
-     for cont in container_list:
-        graph = remove_node(graph,cont,userid)
-        Entry = {}
-        Entry["TYPE_ENTITY"] = "USER"
-        Entry["ID_ENTITITY"] = userid
-        Entry["NODES"] = graph
+def compose_graph(graph,userid):
+     Entry = {}
+     Entry["TYPE_ENTITY"] = "USER"
+     Entry["ID_ENTITITY"] = userid
+     Entry["NODES"] = graph
      return json.dumps(Entry, indent=4, sort_keys=True)
  
 
@@ -208,13 +204,49 @@ def new_cryptotoken(node):
     #TODO
     return "aaaaaaaa4"
 
-def overencrypt(userid,catalog,container_list,acl_list):
-    global graph
-    graph = load_graph(catalog)
-    new_acl_list = ':'.join(sorted(acl_list))
-    for elem in container_list:
-	    cryptotoken = new_cryptotoken(userid)
-	    graph = remove_node(graph,elem,userid)
-	    node = create_node(elem,new_acl_list,cryptotoken,userid)
-	    graph = add_node(graph,node,userid,userid)
-    return graph
+
+    #def overencrypt(user,catalog,container_list,acl_list):overencrypt non sappiamo se container list viene passato singolarmente o come ua lista d container
+    #    global graph
+    #    graph = load_graph(catalog)
+    #    new_acl_list = ':'.join(sorted(acl_list))
+    #    for elem in container_list:
+    #	    cryptotoken = new_cryptotoken(userid)
+    #	    graph = remove_node(graph,elem,userid)
+    #	    node = create_node(elem,new_acl_list,cryptotoken,userid)
+    #	    graph = add_node(graph,node,userid,userid)
+    #    return graph
+
+def stringToList(list_string):
+    res = list_string .split(":")
+    return res
+    
+
+def listToString(list):
+    return '[' + ':'.join(sorted(list)) + ']'
+
+def send_message(command,userid,node):
+                
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    channel.queue_declare(queue='daemon', durable=True)
+       
+    channel.confirm_delivery()
+ 
+    print " *********** Send Message *************"
+        
+    try:  
+        channel.basic_publish(exchange='',
+                              routing_key='daemon',
+                              body=msg,
+                              properties=pika.BasicProperties(
+                              delivery_mode = 2, # make message persistent
+                              ))
+        
+        print(" [x] Sent [%s]" % msg)
+    except pika.exceptions.ConnectionClosed as exc:
+        print('Error. Connection closed, and the message was never delivered.')
+
+    connection.close()
+
+    return
+
