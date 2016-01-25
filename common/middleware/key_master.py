@@ -35,7 +35,17 @@ class key_master(WSGIContext):
         req = Request(env)
         resp = req.get_response(self.app)
 
-        #COMMENT: Finding user and method
+        print " ************************** REQ"
+        print req.method
+        print req.path_info
+        print req.query_string
+        print req.body
+        print req.acl
+        time.sleep(10)
+        print " ************************** ENV"
+        print env
+        time.sleep(10)
+        """ #COMMENT: Finding user and method
         username = env.get('HTTP_X_USER_NAME',None)
         userid   = env.get('HTTP_X_USER_ID',None)
         userid = "9665a758e2544ee3a3eb8b89fd878aa5"
@@ -90,7 +100,7 @@ class key_master(WSGIContext):
 	            #TODO
       
 	            pass
-      
+        """
         return self.app(env, start_response)
 
 

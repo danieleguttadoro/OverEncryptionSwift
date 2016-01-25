@@ -6,39 +6,115 @@ from multiprocessing import Process
 #from keystoneclient import session
 #from keystoneclient.auth import base
 #from swift.proxy import server
-import  swiftclient
+import swiftclient
+from keystoneclient.v2_0 import client as kc
+import json
+
+ADMIN_USER = 'admin'
+ADMIN_PASS = 'secretsecret'
+ADMIN_TENANT = 'admin'
+AUTH_URL = 'http://localhost:5000/v2.0'
+
+
+def new_cryptotoken(user,token):
+
+    return encrypt(key=user,content=token)
+
+
+def create_container(owner_cat):
+
+    try:
+        swift_conn.put_container(owner_cat, headers=None)
+    except:
+        sys.stderr.write('Error while putting container %s' % owner_cat)
+
+    # Add ACL for this container
+    ACL_headers = {}
+    ACL_headers['x-container-read'] = owner_cat
+    ACL_headers['x-container-write'] = UUID
+    ACL_headers['x-container-meta-acl_label'] = owner_cat+':'+UUID
+        
+    try:
+        swift_conn.post_container(owner_cat, headers=ACL_headers)
+    except:
+        sys.stderr.write('Error while setting the %s ACL_headers' % owner_cat)
+
+    return
+
+
+def get_graph(user):
+
+    cat = swift_conn.get_object(container=user,obj=user)
+    
+    return load_graph(cat)
+    
+
+def insert_new_node(user,token,node):
+
+    node[CRYPTOTOKEN] = new_cryptotoken(user,token)
+     
+    graph = get_graph(user)
+    graph = remove_node(graph,node[NODE_CHILD])
+    graph = add_node(graph,node,user,user)
+    
+    json = compose_graph(graph,user)    
+  
+    swift_conn.put_object(user,user,json)
+
+    return
+
+
+def delete_unnecessary_node(user,node,check):
+
+    graph = get_graph(user)
+    
+    if check:
+        f_node = get_node(graph,node[NODE_CHILD]) 
+        if f_node == None:
+            return None
+    
+    graph = remove_node(graph,node[NODE_CHILD])
+    json = compose_graph(graph,user)
+    swift_conn.put_object(user,user,json)
+        
+    return node[ACL_LIST]
 
 
 def consumer_task():
 
-    while (True):
-
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
+    connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
-        channel = connection.channel()
-        channel.queue_declare(queue='daemon', durable=True)
+    channel = connection.channel()
+    channel.queue_declare(queue='daemon', durable=True)
            
-        channel.basic_qos(prefetch_count=1)    
-        channel.basic_consume(callback,
+    channel.basic_qos(prefetch_count=1)    
+    channel.basic_consume(receive_message,
                       queue='daemon')
 
-        #print swift_conn.head_account()
-        print(' [*] Waiting for messages. To exit press CTRL+C')
-        channel.start_consuming()
-
-    # never reached
-    return
+    print(' [%d] Waiting for messages...' % os.getpid())
+    channel.start_consuming()
 
 
-def callback(ch, method, properties, body):
+def receive_message(ch, method, properties, body):
         
-    print(" [x] Received %r" % body)
-    
-    #time.sleep(body.count(b'.'))
-    #req = Request.blank()
-     
-
-    print(" [x] Done")
+    print(' [%d] Received' % os.getpid())
+    command,sender_id,node = body.split('#')
+    if command == 'CREATE':
+        create_container(sender_id)    
+    elif command == 'INSERT':
+        list_usr = stringTOlist(node[ACL_LIST])
+        token = node[CRYPTOTOKEN]
+        for user_id in list_usr: 
+            insert_new_node(user_id,token,node)
+    elif command == 'REMOVE':
+        acl_list = delete_unnecessary_node(sender_id,node,True)
+        if acl_list != None:
+            list_usr = stringTOlist(acl_list)
+            list_usr.remove(sender_id)
+            for user in list_usr:
+                delete_unnecessary_node(user,node,False)
+            
+    print(' [%d] Done!' % os.getpid())
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
 
@@ -90,26 +166,14 @@ def check_status():
 if __name__ == '__main__':
 
     swift_conn = swiftclient.client.Connection(
-            user= 'admin', key= 'secretsecret', authurl= 'http://localhost:5000/v3',
-            tenant_name= 'admin', auth_version='3')
+            user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+            tenant_name= ADMIN_TENANT, auth_version='2.0')
 
-    print swift_conn.head_account()
+    # Require an admin connection
+    kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_PASS, tenant_name=ADMIN_TENANT, auth_url=AUTH_URL)
+    this_user = filter(lambda x: x.username == ADMIN_USER, kc_conn.users.list())
+    UUID = this_user[0].id   
 
-    """ auth = client.Client(username = 'admin',
-                         password = 'secretsecret',
-                         project_name = 'admin',
-                         auth_url = 'http://localhost:5000/v3')
-
-    x_auth_token = auth.get_headers(None)
-
-    sess = session.Session(auth=auth)
-    
-    auth_plugin = base.BaseAuthPlugin()
-    
-    x_auth_token = auth_plugin.get_headers(sess)
-
-    print ('AUTH: [%s]' % x_auth_token)
-    """
     N_INI = 8
     ctrl_list = []
 
@@ -125,10 +189,8 @@ if __name__ == '__main__':
         if count_sleep > threshold and count_sleep > N_INI:
             kill_consumer(ctrl_list)
         elif -count_sleep > ctrlen*3/4:
-            print "qui qui qui qui"
             create_consumer(ctrlen/2,ctrl_list)
         elif -count_sleep > ctrlen/2:
-            print "qua qua qua qua qua"
             create_consumer(ctrlen/3,ctrl_list)
 
         time.sleep(3)
