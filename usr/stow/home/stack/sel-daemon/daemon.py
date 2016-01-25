@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 print "Started!!!!"
-=======
+
 import os, sys, psutil, time, pika
 from multiprocessing import Process
 #from keystoneclient.v3 import client
