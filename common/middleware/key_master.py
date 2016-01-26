@@ -33,40 +33,29 @@ class key_master(WSGIContext):
         #barbican_client()
         req = Request(env)
         resp = req.get_response(self.app)
-        #print env
-        #time.sleep(10)
         #COMMENT: Finding user and method
-        username = env.get('HTTP_X_USER_NAME',None)
-        userid   = env.get('HTTP_X_USER_ID',None)
-        #userid = "9665a758e2544ee3a3eb8b89fd878aa5"
-        print "------------USERID, USERNAME----------------"
-        print username
-        print userid
+        username   = env.get('HTTP_X_USER_NAME',None)
+        userid     = env.get('HTTP_X_USER_ID',None)
+        auth_token = env.get('HTTP_X_AUTH_TOKEN',None)
+        print "------------USERNAME, USERID----------------"
+        print username + ' ' + userid
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
-
-            #Get the catalog from metacontainer
-            req_meta_container, json_catalog , container = catalog_functions.get_catalog(req,self.app,env,start_response,userid)
+            container = req.split_path(1,4,True)[2]
+	    #Get the catalog from metacontainer
+            found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        
             if req.method == "GET":
-                if req_meta_container == None:
-                    print "req_meta_container should be None"
-                    print req_meta_container
-                    time.sleep(7)
+                if found_meta_container == None:
+                    print "found_meta_container == None"
                     catalog_functions.send_message("CREATE",userid, None)
-                elif json_catalog == None:
-                    print "json_catalog == None"
-                    time.sleep(7)
-                     #No need overencryption in the past
-                else:
-                    print req_meta_container
+                elif json_catalog != None:
+                    #if json_catalog == None, overencrypt never done	
                     print json_catalog
-                    time.sleep(7)
                     graph =  catalog_functions.load_graph(json_catalog)
     	            # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
                     cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
                     print "--------------------CRYPTOTOKEN--------------------"
                     print cryptotoken
-
                     if cryptotoken != None:
 	                    #env['swift_crypto_fetch_crypto_token'] = cryptotoken
                         pass	     
