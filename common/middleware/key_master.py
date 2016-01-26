@@ -42,18 +42,19 @@ class key_master(WSGIContext):
         print username
         print userid
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
-        if username != "ceilometer" and username != None and req.method != 'PUT':
+        if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
+
             #Get the catalog from metacontainer
-            req_meta_container, json_catalog , container = catalog_functions.get_catalog(req,self.app)
+            req_meta_container, json_catalog , container = catalog_functions.get_catalog(req,self.app,userid)
             if req.method == "GET":
                 if req_meta_container == None:
                     print "req_meta_container should be None"
                     print req_meta_container
-                    time.sleep(7)
+                    #time.sleep(7)
                     catalog_functions.send_message("CREATE",userid, None)
                 elif json_catalog == None:
                     print "json_catalog == None"
-                    time.sleep(7)
+                    #time.sleep(7)
                     pass #No need overencryption in the past
                 else:
                     graph =  catalog_functions.load_graph(json_catalog)

@@ -8,12 +8,14 @@ from multiprocessing import Process
 #from swift.proxy import server
 import swiftclient
 from keystoneclient.v2_0 import client as kc
+from keystoneclient.exceptions import NotFound,Conflict
 import json
 
 ADMIN_USER = 'admin'
 ADMIN_PASS = 'secretsecret'
 ADMIN_TENANT = 'admin'
 AUTH_URL = 'http://localhost:5000/v2.0'
+SEL_TENANT_NAME = 'sel'
 
 
 def new_cryptotoken(user,token):
@@ -23,6 +25,8 @@ def new_cryptotoken(user,token):
 
 def create_container(owner_cat):
 
+    sys.stderr.write( "***************************************************")
+    
     try:
         swift_conn.put_container(owner_cat, headers=None)
     except:
@@ -39,6 +43,13 @@ def create_container(owner_cat):
     except:
         sys.stderr.write('Error while setting the %s ACL_headers' % owner_cat)
 
+    print ".................................................."
+    user_role = kc_conn.roles.find(name='member')
+    try:
+        kc_conn.tenants.add_user(sel_tenant,owner_cat,user_role)
+    except Conflict:
+        pass
+
     return
 
 
@@ -51,10 +62,10 @@ def get_graph(user):
 
 def insert_new_node(user,token,node):
 
-    node[CRYPTOTOKEN] = new_cryptotoken(user,token)
+    node['CRYPTOTOKEN'] = new_cryptotoken(user,token)
      
     graph = get_graph(user)
-    graph = remove_node(graph,node[NODE_CHILD])
+    graph = remove_node(graph,node['NODE_CHILD'])
     graph = add_node(graph,node,user,user)
     
     json = compose_graph(graph,user)    
@@ -69,15 +80,15 @@ def delete_unnecessary_node(user,node,check):
     graph = get_graph(user)
     
     if check:
-        f_node = get_node(graph,node[NODE_CHILD]) 
+        f_node = get_node(graph,node['NODE_CHILD']) 
         if f_node == None:
             return None
     
-    graph = remove_node(graph,node[NODE_CHILD])
+    graph = remove_node(graph,node['NODE_CHILD'])
     json = compose_graph(graph,user)
     swift_conn.put_object(user,user,json)
         
-    return node[ACL_LIST]
+    return node['ACL_LIST']
 
 
 def consumer_task():
@@ -97,13 +108,15 @@ def consumer_task():
 
 def receive_message(ch, method, properties, body):
         
-    print(' [%d] Received' % os.getpid())
+    #print(' [%d] Received' % os.getpid())
     command,sender_id,node = body.split('#')
+    print("%s %s %s" % (command,sender_id,node))
     if command == 'CREATE':
+        sys.stderr.write("jkjkjkjkjkjkjkjkjkjkjkjkjkj")
         create_container(sender_id)    
     elif command == 'INSERT':
-        list_usr = stringTOlist(node[ACL_LIST])
-        token = node[CRYPTOTOKEN]
+        list_usr = stringTOlist(node['ACL_LIST'])
+        token = node['CRYPTOTOKEN']
         for user_id in list_usr: 
             insert_new_node(user_id,token,node)
     elif command == 'REMOVE':
@@ -165,16 +178,30 @@ def check_status():
 
 if __name__ == '__main__':
 
-    swift_conn = swiftclient.client.Connection(
-            user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
-            tenant_name= ADMIN_TENANT, auth_version='2.0')
-
     # Require an admin connection
     kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_PASS, tenant_name=ADMIN_TENANT, auth_url=AUTH_URL)
     this_user = filter(lambda x: x.username == ADMIN_USER, kc_conn.users.list())
     UUID = this_user[0].id   
 
-    N_INI = 8
+    try:
+        sel_tenant = kc_conn.tenants.find(name=SEL_TENANT_NAME)
+    except NotFound:
+        sel_tenant = kc_conn.tenants.create(SEL_TENANT_NAME,None)
+    
+    admin_role = kc_conn.roles.find(name='admin')
+      
+    try:
+        kc_conn.tenants.add_user(tenant=sel_tenant,user=UUID,role=admin_role)
+    except Conflict:
+        pass
+    
+    swift_conn = swiftclient.client.Connection(
+            user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+            tenant_name= SEL_TENANT_NAME, auth_version='2.0')
+
+    print swift_conn.get_account()
+
+    N_INI = 8 
     ctrl_list = []
 
     create_consumer(N_INI+1,ctrl_list)

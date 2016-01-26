@@ -1,22 +1,28 @@
 #!/usr/bin/env python
 
-import json
+import json, time
 import base64
 from itertools import *
 from swift.common.swob import Request
 import pika
 
 # Names of meta container and file of the graph
-meta_container = "meta"
 graph_tokens = "b"
 
 #modified on server
-def get_catalog(req,app):
+def get_catalog(req,app,user_id):
     #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens
     version, account, container, obj = req.split_path(1,4,True)
-    path_meta_container = "/".join(["", version , account , meta_container])
-    path_catalog = "/".join(["", version , account , meta_container, graph_tokens])
-    
+    print "old path"
+    print version 
+    print account
+    print container
+    print obj
+    path_meta_container = "/".join(["", version , 'admin' , user_id])
+    path_catalog = "/".join(["", version , 'admin' , user_id, graph_tokens])
+    print path_meta_container
+    #time.sleep(10)
+     
     req_meta_container = Request.blank(path_meta_container,None,req.headers,None)
     res_meta_container = req_meta_container.get_response(app)  
     if res_meta_container.status == '404 Not Found':
