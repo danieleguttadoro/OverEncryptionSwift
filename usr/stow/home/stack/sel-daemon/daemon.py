@@ -10,6 +10,7 @@ import swiftclient
 from keystoneclient.v2_0 import client as kc
 from keystoneclient.exceptions import NotFound,Conflict
 import json
+import signal
 
 ADMIN_USER = 'admin'
 ADMIN_PASS = 'secretsecret'
@@ -44,7 +45,7 @@ def create_container(owner_cat):
         sys.stderr.write('Error while setting the %s ACL_headers' % owner_cat)
 
     print ".................................................."
-    user_role = kc_conn.roles.find(name='member')
+    user_role = kc_conn.roles.find(name='_member_')
     try:
         kc_conn.tenants.add_user(sel_tenant,owner_cat,user_role)
     except Conflict:
@@ -134,6 +135,7 @@ def receive_message(ch, method, properties, body):
 def create_consumer(n,clist):
     
     for i in range(1,n):
+        
         pid = os.fork()
         if pid:
             clist.append(pid)
@@ -141,6 +143,15 @@ def create_consumer(n,clist):
         print ('             **** CREATED [%d] ****' % (pid))
     
     return
+
+def handler(signum,frame):
+     for pid in ctrl_list:
+         proc = psutil.Process(pid)
+         proc.kill()
+         ctrl_list.remove(pid)
+     proc = psutil.Process(os.getpid())
+     proc.kill()
+
 
 
 def kill_consumer(clist):
@@ -201,11 +212,14 @@ if __name__ == '__main__':
 
     print swift_conn.get_account()
 
-    N_INI = 8 
+    N_INI = 1 
     ctrl_list = []
 
-    create_consumer(N_INI+1,ctrl_list)
+    signal.signal(signal.SIGINT,handler)
 
+    
+    create_consumer(N_INI+1,ctrl_list)
+    
     while(True):
 
         count_sleep = check_status()
@@ -220,7 +234,5 @@ if __name__ == '__main__':
         elif -count_sleep > ctrlen/2:
             create_consumer(ctrlen/3,ctrl_list)
 
-        time.sleep(3)
-    
+        time.sleep(3)      
     # never reached
-  
