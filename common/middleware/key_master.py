@@ -33,7 +33,8 @@ class key_master(WSGIContext):
         #barbican_client()
         req = Request(env)
         resp = req.get_response(self.app)
-
+        #print env
+        #time.sleep(10)
         #COMMENT: Finding user and method
         username = env.get('HTTP_X_USER_NAME',None)
         userid   = env.get('HTTP_X_USER_ID',None)
@@ -45,18 +46,21 @@ class key_master(WSGIContext):
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
 
             #Get the catalog from metacontainer
-            req_meta_container, json_catalog , container = catalog_functions.get_catalog(req,self.app,userid)
+            req_meta_container, json_catalog , container = catalog_functions.get_catalog(req,self.app,env,start_response,userid)
             if req.method == "GET":
                 if req_meta_container == None:
                     print "req_meta_container should be None"
                     print req_meta_container
-                    #time.sleep(7)
+                    time.sleep(7)
                     catalog_functions.send_message("CREATE",userid, None)
                 elif json_catalog == None:
                     print "json_catalog == None"
-                    #time.sleep(7)
-                    pass #No need overencryption in the past
+                    time.sleep(7)
+                     #No need overencryption in the past
                 else:
+                    print req_meta_container
+                    print json_catalog
+                    time.sleep(7)
                     graph =  catalog_functions.load_graph(json_catalog)
     	            # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
                     cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 

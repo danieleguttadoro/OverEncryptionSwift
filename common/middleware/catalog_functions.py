@@ -1,27 +1,21 @@
-#!/usr/bin/env python
+#!/uisr/bin/env python
 
 import json, time
 import base64
 from itertools import *
 from swift.common.swob import Request
 import pika
-
-# Names of meta container and file of the graph
-graph_tokens = "b"
-
+from swift.proxy.controllers.base import Controller
 #modified on server
-def get_catalog(req,app,user_id):
+def get_catalog(req,app,env,start_response,user_id):
     #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens
     version, account, container, obj = req.split_path(1,4,True)
-    print "old path"
-    print version 
-    print account
-    print container
-    print obj
-    path_meta_container = "/".join(["", version , 'admin' , user_id])
-    path_catalog = "/".join(["", version , 'admin' , user_id, graph_tokens])
-    print path_meta_container
-    #time.sleep(10)
+    ciccio = Controller(app)
+    print ciccio.account_info(account='demo')
+    
+    path_meta_container = "/".join(["", version , user_id , user_id])
+    path_catalog = "/".join(["", version , user_id , user_id, user_id])
+    time.sleep(10)
      
     req_meta_container = Request.blank(path_meta_container,None,req.headers,None)
     res_meta_container = req_meta_container.get_response(app)  

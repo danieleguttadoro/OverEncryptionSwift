@@ -16,7 +16,7 @@ ADMIN_USER = 'admin'
 ADMIN_PASS = 'secretsecret'
 ADMIN_TENANT = 'admin'
 AUTH_URL = 'http://localhost:5000/v2.0'
-SEL_TENANT_NAME = 'sel'
+#SEL_TENANT_NAME = 'sel'
 
 
 def new_cryptotoken(user,token):
@@ -25,8 +25,27 @@ def new_cryptotoken(user,token):
 
 
 def create_container(owner_cat):
+ 
+    try:
+        sel_tenant = kc_conn.tenants.find(name=owner_cat)
+    except NotFound:
+        sel_tenant = kc_conn.tenants.create(owner_cat,None)
+    
+    try:
+        kc_conn.tenants.add_user(tenant=sel_tenant,user=UUID,role=admin_role)
+    except Conflict:
+       pass
+    
+    swift_conn = swiftclient.client.Connection(
+            user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+            tenant_name= owner_cat, auth_version='2.0')
 
-    sys.stderr.write( "***************************************************")
+    user_role = kc_conn.roles.find(name='Member')
+    
+    try:
+        kc_conn.tenants.add_user(sel_tenant,owner_cat,user_role)
+    except Conflict:
+        pass
     
     try:
         swift_conn.put_container(owner_cat, headers=None)
@@ -44,12 +63,6 @@ def create_container(owner_cat):
     except:
         sys.stderr.write('Error while setting the %s ACL_headers' % owner_cat)
 
-    print ".................................................."
-    user_role = kc_conn.roles.find(name='_member_')
-    try:
-        kc_conn.tenants.add_user(sel_tenant,owner_cat,user_role)
-    except Conflict:
-        pass
 
     return
 
@@ -111,9 +124,7 @@ def receive_message(ch, method, properties, body):
         
     #print(' [%d] Received' % os.getpid())
     command,sender_id,node = body.split('#')
-    print("%s %s %s" % (command,sender_id,node))
     if command == 'CREATE':
-        sys.stderr.write("jkjkjkjkjkjkjkjkjkjkjkjkjkj")
         create_container(sender_id)    
     elif command == 'INSERT':
         list_usr = stringTOlist(node['ACL_LIST'])
@@ -194,24 +205,8 @@ if __name__ == '__main__':
     this_user = filter(lambda x: x.username == ADMIN_USER, kc_conn.users.list())
     UUID = this_user[0].id   
 
-    try:
-        sel_tenant = kc_conn.tenants.find(name=SEL_TENANT_NAME)
-    except NotFound:
-        sel_tenant = kc_conn.tenants.create(SEL_TENANT_NAME,None)
-    
     admin_role = kc_conn.roles.find(name='admin')
       
-    try:
-        kc_conn.tenants.add_user(tenant=sel_tenant,user=UUID,role=admin_role)
-    except Conflict:
-        pass
-    
-    swift_conn = swiftclient.client.Connection(
-            user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
-            tenant_name= SEL_TENANT_NAME, auth_version='2.0')
-
-    print swift_conn.get_account()
-
     N_INI = 1 
     ctrl_list = []
 
