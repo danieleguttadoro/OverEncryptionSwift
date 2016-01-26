@@ -12,7 +12,7 @@ import time
 import sys
 import traceback
 
-from barbicanclient import client
+#from barbicanclient import client
 from keystoneclient import session
 from keystoneclient.auth import identity
 ################
@@ -38,13 +38,14 @@ class key_master(WSGIContext):
         userid     = env.get('HTTP_X_USER_ID',None)
         auth_token = env.get('HTTP_X_AUTH_TOKEN',None)
         print "------------USERNAME, USERID----------------"
-        print username + ' ' + userid
+        print username 
+        print userid
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
             container = req.split_path(1,4,True)[2]
 	    #Get the catalog from metacontainer
             found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        
-            if req.method == "GET":
+            if False: #req.method == "GET":
                 if found_meta_container == None:
                     print "found_meta_container == None"
                     catalog_functions.send_message("CREATE",userid, None)
@@ -59,7 +60,7 @@ class key_master(WSGIContext):
                     if cryptotoken != None:
 	                    #env['swift_crypto_fetch_crypto_token'] = cryptotoken
                         pass	     
-            elif False: #req.method == "HEAD" or req.method== "POST":
+            elif True: #req.method == "HEAD" or req.method== "POST":
                 if True:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
                     token = catalog_functions.gen_token()

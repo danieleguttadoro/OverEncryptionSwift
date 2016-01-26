@@ -7,20 +7,24 @@ from swift.common.swob import Request
 import pika
 from swift.proxy.controllers.base import Controller
 
+from keystoneclient.v2_0 import client
+from keystoneclient.exceptions import Unauthorized
+
+def gen_token():
+    return "aaa"
+
 def conn_keystone(username,userid,auth_token):
-	
-	keystone = client.Client(username=username,token = auth_token,
-                                tenant_name=userid,auth_url="http://127.0.0.1:5000/v2.0")
-        try:
-        	return keystone.tenant_id 
-        except:
-		return None
+    try:
+        keystone = client.Client(username=username,token = auth_token,tenant_name=userid,auth_url="http://127.0.0.1:5000/v2.0")
+        return keystone.tenant_id 
+    except Unauthorized:
+        return None
 		
 #modified on server
 def get_catalog(app,auth_token,req,user_id,username):
     #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens
     #version, account, container, obj = req.split_path(1,4,True)
-    account = conn_keystone(username,userid,auth_token)
+    account = conn_keystone(username,user_id,auth_token)
     if account == None:
     	return None, None
     path_catalog = "/".join(["", "v1" , account , user_id, user_id])
@@ -34,7 +38,7 @@ def get_catalog(app,auth_token,req,user_id,username):
 def create_node(node_child,acl_child,cryptotoken,ownertoken):
     Entry = {}
     Entry["NODE_CHILD"] = node_child
-    Entry["ACL_CHILD"] = stringToList(acl_child)
+    Entry["ACL_CHILD"] = stringTOlist(acl_child)
     #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
     Entry["CRYPTOTOKEN"] = cryptotoken# TokenDecEscape
     Entry["OWNERTOKEN"] = ownertoken
@@ -192,7 +196,7 @@ def tokenIsValid(token, owner):
     return True
 
 def get_cryptotoken(catalog, container):
-    myPath = get_Node(load_graph(catalog), container)
+    myPath = get_node(load_graph(catalog), container)
     if myPath == None:
         return None
     
@@ -222,12 +226,12 @@ def new_cryptotoken(node):
     #	    graph = add_node(graph,node,userid,userid)
     #    return graph
 
-def stringToList(list_string):
-    res = list_string .split(":")
+def stringTOlist(list_string):
+    res = list_string.split(":")
     return res
     
 
-def listToString(list):
+def listTOstring(list):
     return '[' + ':'.join(sorted(list)) + ']'
 
 def send_message(command,userid,node):

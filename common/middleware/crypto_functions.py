@@ -18,8 +18,11 @@ def get_privatekey():
 def gen_token():
     return "token"
 
+def encrypt(key,content):
+    return content
+
 def decrypt_resource (obj, secret):
-    return "aa"
+    return obj
     # the block size for the cipher object; must be 16, 24, or 32 for AES
     BLOCK_SIZE = 32
 

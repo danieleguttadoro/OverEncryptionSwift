@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+from swift.common.middleware import catalog_functions as cf
+from swift.common.middleware import crypto_functions as cr
 import os, sys, psutil, time, pika
 from multiprocessing import Process
 #from keystoneclient.v3 import client
@@ -18,10 +19,9 @@ ADMIN_TENANT = 'admin'
 AUTH_URL = 'http://localhost:5000/v2.0'
 #SEL_TENANT_NAME = 'sel'
 
-
 def new_cryptotoken(user,token):
 
-    return encrypt(key=user,content=token)
+    return cr.encrypt(key=user,content=token)
 
 
 def create_container(owner_cat):
@@ -36,10 +36,6 @@ def create_container(owner_cat):
     except Conflict:
        pass
     
-    swift_conn = swiftclient.client.Connection(
-            user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
-            tenant_name= owner_cat, auth_version='2.0')
-
     user_role = kc_conn.roles.find(name='Member')
     
     try:
@@ -69,11 +65,12 @@ def create_container(owner_cat):
 
 def get_graph(user):
 
+    
     cat = swift_conn.get_object(container=user,obj=user)
+    if cat.body == None:
+        return []
+    return load_graph(cat.body)
     
-    return load_graph(cat)
-    
-
 def insert_new_node(user,token,node):
 
     node['CRYPTOTOKEN'] = new_cryptotoken(user,token)
@@ -102,7 +99,7 @@ def delete_unnecessary_node(user,node,check):
     json = compose_graph(graph,user)
     swift_conn.put_object(user,user,json)
         
-    return node['ACL_LIST']
+    return node['ACL_CHILD']
 
 
 def consumer_task():
@@ -124,10 +121,16 @@ def receive_message(ch, method, properties, body):
         
     #print(' [%d] Received' % os.getpid())
     command,sender_id,node = body.split('#')
+    node = json.loads(node.decode('latin-1'), strict=False)
+    global swift_conn
+    swift_conn = swiftclient.client.Connection(
+             user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+             tenant_name= sender_id, auth_version='2.0')
     if command == 'CREATE':
         create_container(sender_id)    
     elif command == 'INSERT':
-        list_usr = stringTOlist(node['ACL_LIST'])
+        #list_usr = cf.stringTOlist(node['ACL_CHILD'])
+        list_usr = node['ACL_CHILD']
         token = node['CRYPTOTOKEN']
         for user_id in list_usr: 
             insert_new_node(user_id,token,node)
