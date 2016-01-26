@@ -6,21 +6,25 @@ from itertools import *
 from swift.common.swob import Request
 import pika
 from swift.proxy.controllers.base import Controller
+
+def conn_keystone(username,userid,auth_token):
+	
+	keystone = client.Client(username=username,token = auth_token,
+                                tenant_name=userid,auth_url="http://127.0.0.1:5000/v2.0")
+        try:
+        	return keystone.tenant_id 
+        except:
+		return None
+		
 #modified on server
-def get_catalog(req,app,env,start_response,user_id):
+def get_catalog(app,auth_token,req,user_id,username):
     #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens
-    version, account, container, obj = req.split_path(1,4,True)
-    ciccio = Controller(app)
-    print ciccio.account_info(account='demo')
+    #version, account, container, obj = req.split_path(1,4,True)
     
-    path_meta_container = "/".join(["", version , user_id , user_id])
-    path_catalog = "/".join(["", version , user_id , user_id, user_id])
-    time.sleep(10)
-     
-    req_meta_container = Request.blank(path_meta_container,None,req.headers,None)
-    res_meta_container = req_meta_container.get_response(app)  
-    if res_meta_container.status == '404 Not Found':
-        return None, None, None
+    account = conn_keystone(username,userid,auth_token)
+    if account == None:
+    	return None, None, None
+    path_catalog = "/".join(["", "v1" , account , user_id, user_id])
     
     req_catalog = Request.blank(path_catalog,None,req.headers,None)
     res_catalog = req_catalog.get_response(app)
