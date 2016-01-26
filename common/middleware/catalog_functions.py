@@ -4,6 +4,7 @@ import json
 import base64
 from itertools import *
 from swift.common.swob import Request
+import pika
 
 # Names of meta container and file of the graph
 meta_container = "meta"
@@ -17,12 +18,14 @@ def get_catalog(req,app):
     path_catalog = "/".join(["", version , account , meta_container, graph_tokens])
     
     req_meta_container = Request.blank(path_meta_container,None,req.headers,None)
-    res_meta_container = req_meta_container.get_response(app)
-    if res_meta_container == None:
+    res_meta_container = req_meta_container.get_response(app)  
+    if res_meta_container.status == '404 Not Found':
         return None, None, None
     
     req_catalog = Request.blank(path_catalog,None,req.headers,None)
     res_catalog = req_catalog.get_response(app)
+    if res_catalog.status =='404 Not Found':
+        return req_catalog, None, container
     return req_catalog ,res_catalog.body, container
 
 def create_node(node_child,acl_child,cryptotoken,ownertoken):
@@ -53,6 +56,7 @@ def add_node(graph,Entry,parent,userid):
 	    # The source node already exists. Only the destination+token must be appended
         for elem in [elem for elem in graph if elem['NODE'] == parent]:
             Parent[0]['TOKEN'].append(Entry)
+    
     return graph
 
 #Not used?
@@ -196,12 +200,13 @@ def compose_graph(graph,userid):
      Entry["TYPE_ENTITY"] = "USER"
      Entry["ID_ENTITITY"] = userid
      Entry["NODES"] = graph
-     return json.dumps(Entry, indent =4, sort_keys=True)
+     return json.dumps(Entry, indent=4, sort_keys=True)
  
 
 def new_cryptotoken(node):
     #TODO
     return "aaaaaaaa4"
+
 
     #def overencrypt(user,catalog,container_list,acl_list):overencrypt non sappiamo se container list viene passato singolarmente o come ua lista d container
     #    global graph
@@ -231,7 +236,8 @@ def send_message(command,userid,node):
     channel.confirm_delivery()
  
     print " *********** Send Message *************"
-        
+    node_s = json.dumps(node, indent=4, sort_keys=True)
+    msg = command +"#"+ userid + "#" + node_s
     try:  
         channel.basic_publish(exchange='',
                               routing_key='daemon',
@@ -247,3 +253,4 @@ def send_message(command,userid,node):
     connection.close()
 
     return
+

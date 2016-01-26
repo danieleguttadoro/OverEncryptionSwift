@@ -153,7 +153,7 @@ def check_status():
 
     for pid in ctrl_list:
         proc = psutil.Process(pid)
-        print(' PID [%d] status [%s]' % (pid, proc.status))
+        #print(' PID [%d] status [%s]' % (pid, proc.status))
         if proc.status == psutil.STATUS_SLEEPING:
             count += 1
         elif proc.status == psutil.STATUS_RUNNING:
