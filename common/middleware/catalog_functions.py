@@ -20,17 +20,16 @@ def conn_keystone(username,userid,auth_token):
 def get_catalog(app,auth_token,req,user_id,username):
     #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens
     #version, account, container, obj = req.split_path(1,4,True)
-    
     account = conn_keystone(username,userid,auth_token)
     if account == None:
-    	return None, None, None
+    	return None, None
     path_catalog = "/".join(["", "v1" , account , user_id, user_id])
     
     req_catalog = Request.blank(path_catalog,None,req.headers,None)
     res_catalog = req_catalog.get_response(app)
     if res_catalog.status =='404 Not Found':
-        return req_catalog, None, container
-    return req_catalog ,res_catalog.body, container
+        return 'Found', None
+    return 'Found', res_catalog.body
 
 def create_node(node_child,acl_child,cryptotoken,ownertoken):
     Entry = {}
