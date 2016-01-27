@@ -69,11 +69,12 @@ def get_graph(user):
     try: 
         cat = swift_conn.get_object(container=user,obj=user)
     except ce:
-        #to modify return
+        create_container(user) 
         return {}
 
     if cat.body == None:
         return {}
+    
     return load_graph(cat.body)
     
 def insert_new_node(user,token,node):
@@ -131,11 +132,10 @@ def receive_message(ch, method, properties, body):
     swift_conn = swiftclient.client.Connection(
              user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
              tenant_name= sender_id, auth_version='2.0')
-    if command == 'CREATE':
-        create_container(sender_id)    
-    elif command == 'INSERT':
+    #if command == 'CREATE':
+    #    create_container(sender_id)    
+    if command == 'INSERT':
         #list_usr = cf.stringTOlist(node['ACL_CHILD'])
-        create_container(sender_id)
         list_usr = node['ACL_CHILD']
         token = node['CRYPTOTOKEN']
         for user_id in list_usr: 

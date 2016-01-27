@@ -43,23 +43,20 @@ class key_master(WSGIContext):
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
             container = req.split_path(1,4,True)[2]
-	    #Get the catalog from metacontainer
+	        #Get the catalog from metacontainer
             found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        
-            if False: #req.method == "GET":
-                if found_meta_container == None:
-                    print "found_meta_container == None"
-                    catalog_functions.send_message("CREATE",userid, None)
-                elif json_catalog != None:
-                    #if json_catalog == None, overencrypt never done	
-                    print json_catalog
-                    graph =  catalog_functions.load_graph(json_catalog)
-    	            # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
-                    cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
-                    print "--------------------CRYPTOTOKEN--------------------"
-                    print cryptotoken
-                    if cryptotoken != None:
-	                    #env['swift_crypto_fetch_crypto_token'] = cryptotoken
-                        pass	     
+            if False: #req.method == "GET" and json_catalog != None and found_meta_container != None:
+                # if json_catalog == None, overencrypt never done
+                # if found_meta_container == None, not exist a catalog	
+                print json_catalog
+                graph =  catalog_functions.load_graph(json_catalog)
+                # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+                cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
+                print "--------------------CRYPTOTOKEN--------------------"
+                print cryptotoken
+                if cryptotoken != None:
+	            #env['swift_crypto_fetch_crypto_token'] = cryptotoken
+                  pass	     
             elif True: #req.method == "HEAD" or req.method== "POST":
                 if True:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
