@@ -38,7 +38,7 @@ def get_catalog(app,auth_token,req,user_id,username):
 def create_node(node_child,acl_child,cryptotoken,ownertoken):
     Entry = {}
     Entry["NODE_CHILD"] = node_child
-    Entry["ACL_CHILD"] = stringTOlist(acl_child)
+    Entry["ACL_CHILD"] = listTOstring(acl_child)
     #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
     Entry["CRYPTOTOKEN"] = cryptotoken# TokenDecEscape
     Entry["OWNERTOKEN"] = ownertoken
@@ -58,7 +58,7 @@ def add_node(graph,Entry,parent,userid):
         CatDtEntryList = []
         CatDtEntryList.append(Entry)
         CatGrEntry["TOKEN"] = CatDtEntryList
-        graph['NODES']=CatGrEntry
+        graph=[CatGrEntry]
     else:
 	    # The source node already exists. Only the destination+token must be appended
         for elem in [elem for elem in graph if elem['NODE'] == parent]:
@@ -232,22 +232,23 @@ def stringTOlist(list_string):
     
 
 def listTOstring(list):
-    return '[' + ':'.join(sorted(list)) + ']'
+    return ':'.join(sorted(list))
 
 def send_message(command,userid,node):
                 
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon1', durable=True)
+    channel.queue_declare(queue='daemon9', durable=True)
        
     channel.confirm_delivery()
  
     print " *********** Send Message *************"
+    time.sleep(5)
     node_s = json.dumps(node, indent=4, sort_keys=True)
     msg = command +"#"+ userid + "#" + node_s
     try:  
         channel.basic_publish(exchange='',
-                              routing_key='daemon',
+                              routing_key='daemon9',
                               body=msg,
                               properties=pika.BasicProperties(
                               delivery_mode = 2, # make message persistent

@@ -19,15 +19,11 @@ from keystoneclient.auth import identity
 
 class key_master(WSGIContext):
 
-   # Names of meta container and file of the graph
-   meta_container = "meta"
-   graph_tokens = "b"
-
-   def __init__(self,app, conf):
+    def __init__(self,app, conf):
         self.app = app
         self.conf = conf
 
-   def __call__(self, env, start_response):
+    def __call__(self, env, start_response):
       
         print "----------------- KEY_MASTER -----------------------"
         #barbican_client()
@@ -61,7 +57,9 @@ class key_master(WSGIContext):
                 if True:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
                     token = catalog_functions.gen_token()
-                    node = catalog_functions.create_node(["A","B","C"],container,token,userid)
+                    node = catalog_functions.create_node(container,['139db4f8d8434b95abcf76e63163e135','979703c558d34f2e83fc80c53901f8d7'],token,userid)
+                    print "FORWARD MESSAGE ************"
+                    print username
                     catalog_functions.send_message("INSERT",userid,node)
                     #Encrypt the resource
                     if json_catalog != None:

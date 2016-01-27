@@ -18,14 +18,14 @@ ADMIN_USER = 'admin'
 ADMIN_PASS = 'secretsecret'
 ADMIN_TENANT = 'admin'
 AUTH_URL = 'http://localhost:5000/v2.0'
-#SEL_TENANT_NAME = 'sel'
+
 
 def new_cryptotoken(user,token):
 
     return cr.encrypt(key=user,content=token)
 
 
-def create_container(owner_cat):
+def create_container(swift_conn,owner_cat):
  
     try:
         sel_tenant = kc_conn.tenants.find(name=owner_cat)
@@ -64,35 +64,37 @@ def create_container(owner_cat):
     return
 
 
-def get_graph(user):
+def get_graph(swift_conn,user):
 
     try: 
         cat = swift_conn.get_object(container=user,obj=user)
     except ce:
-        create_container(user) 
+        create_container(swift_conn,user) 
         return {}
 
-    if cat.body == None:
-        return {}
+    if cat[1] == '':
+        print "hdhdhd"
+        return {} 
     
-    return load_graph(cat.body)
+    return cf.load_graph(cat[1])
     
-def insert_new_node(user,token,node):
+def insert_new_node(swift_conn,user,token,node):
 
     node['CRYPTOTOKEN'] = new_cryptotoken(user,token)
      
-    graph = get_graph(user)
+    graph = get_graph(swift_conn,user)
+
     graph = cf.remove_node(graph,node['NODE_CHILD'])
     graph = cf.add_node(graph,node,user,user)
-    
+
     json = cf.compose_graph(graph,user)    
-  
+
     swift_conn.put_object(user,user,json)
 
     return
 
 
-def delete_unnecessary_node(user,node,check):
+def delete_unnecessary_node(swift_conn,user,node,check):
 
     graph = get_graph(user)
     
@@ -113,11 +115,11 @@ def consumer_task():
     connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon1', durable=True)
+    channel.queue_declare(queue='daemon9', durable=True)
            
     channel.basic_qos(prefetch_count=1)    
     channel.basic_consume(receive_message,
-                      queue='daemon')
+                      queue='daemon9')
 
     print(' [%d] Waiting for messages...' % os.getpid())
     channel.start_consuming()
@@ -128,25 +130,24 @@ def receive_message(ch, method, properties, body):
     #print(' [%d] Received' % os.getpid())
     command,sender_id,node = body.split('#')
     node = json.loads(node.decode('latin-1'), strict=False)
-    global swift_conn
-    swift_conn = swiftclient.client.Connection(
-             user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
-             tenant_name= sender_id, auth_version='2.0')
     #if command == 'CREATE':
     #    create_container(sender_id)    
     if command == 'INSERT':
-        #list_usr = cf.stringTOlist(node['ACL_CHILD'])
-        list_usr = node['ACL_CHILD']
+        list_usr = cf.stringTOlist(node['ACL_CHILD'])
         token = node['CRYPTOTOKEN']
         for user_id in list_usr: 
-            insert_new_node(user_id,token,node)
+            swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+                                                       tenant_name= user_id, auth_version='2.0')
+            insert_new_node(swift_conn,user_id,token,node)
     elif command == 'REMOVE':
-        acl_list = delete_unnecessary_node(sender_id,node,True)
+        acl_list = delete_unnecessary_node(swift_conn,sender_id,node,True)
         if acl_list != None:
             list_usr = stringTOlist(acl_list)
             list_usr.remove(sender_id)
-            for user in list_usr:
-                delete_unnecessary_node(user,node,False)
+            for user_id in list_usr:
+                swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+                                                       tenant_name= user_id, auth_version='2.0')
+                delete_unnecessary_node(swift_conn,user_id,node,False)
             
     print(' [%d] Done!' % os.getpid())
     ch.basic_ack(delivery_tag = method.delivery_tag)
