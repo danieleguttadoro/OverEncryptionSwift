@@ -27,14 +27,13 @@ def get_catalog(app,auth_token,req,user_id,username):
     account = conn_keystone(username,user_id,auth_token)
     if account == None:
     	return None, None
-    path_catalog = "/".join(["", "v1" , account , user_id, user_id])
-    
+    path_catalog = "/".join(["", "v1" ,"AUTH_" +  account , user_id, user_id])
     req_catalog = Request.blank(path_catalog,None,req.headers,None)
     res_catalog = req_catalog.get_response(app)
     if res_catalog.status =='404 Not Found':
         return 'Found', None
     return 'Found', res_catalog.body
-
+    
 def create_node(node_child,acl_child,cryptotoken,ownertoken):
     Entry = {}
     Entry["NODE_CHILD"] = node_child
@@ -195,8 +194,8 @@ def tokenIsValid(token, owner):
     """
     return True
 
-def get_cryptotoken(catalog, container):
-    myPath = get_node(load_graph(catalog), container)
+def get_cryptotoken(graph,container):
+    myPath = get_node(graph, container)
     if myPath == None:
         return None
     

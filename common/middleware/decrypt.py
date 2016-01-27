@@ -17,7 +17,8 @@ class decrypt(WSGIContext):
    def __call__(self, env, start_response):
         print "----------------- DECRYPT MODULE -----------------------"
         req = Request(env)
-        resp = req.get_response(self.app)
+        #resp deve essere fatta, ma qui e' commentata in modo da effettuare una sola richiesta del key_master.
+        #resp = req.get_response(self.app)
         cryptotoken = env.get('swift_crypto_fetch_crypto_token',None)
         print cryptotoken
         if cryptotoken != None:

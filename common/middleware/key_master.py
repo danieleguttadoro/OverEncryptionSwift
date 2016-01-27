@@ -24,11 +24,11 @@ class key_master(WSGIContext):
         self.conf = conf
 
     def __call__(self, env, start_response):
-      
+        
         print "----------------- KEY_MASTER -----------------------"
         #barbican_client()
         req = Request(env)
-        resp = req.get_response(self.app)
+        #resp = req.get_response(self.app)
         #COMMENT: Finding user and method
         username   = env.get('HTTP_X_USER_NAME',None)
         userid     = env.get('HTTP_X_USER_ID',None)
@@ -41,29 +41,26 @@ class key_master(WSGIContext):
             container = req.split_path(1,4,True)[2]
 	        #Get the catalog from metacontainer
             found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        
-            if False: #req.method == "GET" and json_catalog != None and found_meta_container != None:
-                # if json_catalog == None, overencrypt never done
-                # if found_meta_container == None, not exist a catalog	
-                print json_catalog
+            if req.method == "GET" and json_catalog != None and found_meta_container != None:
+                #COMMENT: if json_catalog == None, overencrypt never done
+                #COMMENT: if found_meta_container == None, not exist a catalog	
                 graph =  catalog_functions.load_graph(json_catalog)
-                # COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
-                cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container) 
-                print "--------------------CRYPTOTOKEN--------------------"
-                print cryptotoken
+                #COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+                cryptotoken = catalog_functions.get_cryptotoken(graph,container)
+                print "----------------CRYPTOTOKEN--------------------"
+                print cryptotoken 
                 if cryptotoken != None:
 	            #env['swift_crypto_fetch_crypto_token'] = cryptotoken
                   pass	     
-            elif True: #req.method == "HEAD" or req.method== "POST":
+            elif req.method== "POST":
                 if True:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
                     token = catalog_functions.gen_token()
-                    node = catalog_functions.create_node(container,['139db4f8d8434b95abcf76e63163e135','979703c558d34f2e83fc80c53901f8d7'],token,userid)
-                    print "FORWARD MESSAGE ************"
-                    print username
+                    node = catalog_functions.create_node(container,['bb24586d189d4cf480cdf837abc1e01d','a3974e8688cd4b8793bd62ab6606a46d'],token,userid)
                     catalog_functions.send_message("INSERT",userid,node)
                     #Encrypt the resource
                     if json_catalog != None:
-                        old_cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container)
+                        old_cryptotoken = catalog_functions.get_cryptotoken(graph,container)
                         env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
                     env['swift_crypto_fetch_new_token'] = token
                 elif False:#env['overencrypt'] =="QualcosaltroNo":
@@ -74,7 +71,7 @@ class key_master(WSGIContext):
 	            #TODO
       
 	            pass
-      
+        
         return self.app(env, start_response)
 
 

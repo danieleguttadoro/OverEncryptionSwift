@@ -22,7 +22,6 @@ class encrypt(WSGIContext):
     def __call__(self, env, start_response):
         print "----------------- ENCRYPT -----------------------"
         
-
         req = Request(env)
         resp = req.get_response(self.app)
         resource = resp.body
