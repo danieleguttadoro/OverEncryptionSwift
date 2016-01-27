@@ -8,6 +8,7 @@ from multiprocessing import Process
 #from keystoneclient.auth import base
 #from swift.proxy import server
 import swiftclient
+from swiftclient.exceptions import ClientException as ce
 from keystoneclient.v2_0 import client as kc
 from keystoneclient.exceptions import NotFound,Conflict
 import json
@@ -65,10 +66,14 @@ def create_container(owner_cat):
 
 def get_graph(user):
 
-    
-    cat = swift_conn.get_object(container=user,obj=user)
+    try: 
+        cat = swift_conn.get_object(container=user,obj=user)
+    except ce:
+        #to modify return
+        return {}
+
     if cat.body == None:
-        return []
+        return {}
     return load_graph(cat.body)
     
 def insert_new_node(user,token,node):
@@ -76,10 +81,10 @@ def insert_new_node(user,token,node):
     node['CRYPTOTOKEN'] = new_cryptotoken(user,token)
      
     graph = get_graph(user)
-    graph = remove_node(graph,node['NODE_CHILD'])
-    graph = add_node(graph,node,user,user)
+    graph = cf.remove_node(graph,node['NODE_CHILD'])
+    graph = cf.add_node(graph,node,user,user)
     
-    json = compose_graph(graph,user)    
+    json = cf.compose_graph(graph,user)    
   
     swift_conn.put_object(user,user,json)
 
@@ -107,7 +112,7 @@ def consumer_task():
     connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon', durable=True)
+    channel.queue_declare(queue='daemon1', durable=True)
            
     channel.basic_qos(prefetch_count=1)    
     channel.basic_consume(receive_message,
@@ -130,6 +135,7 @@ def receive_message(ch, method, properties, body):
         create_container(sender_id)    
     elif command == 'INSERT':
         #list_usr = cf.stringTOlist(node['ACL_CHILD'])
+        create_container(sender_id)
         list_usr = node['ACL_CHILD']
         token = node['CRYPTOTOKEN']
         for user_id in list_usr: 

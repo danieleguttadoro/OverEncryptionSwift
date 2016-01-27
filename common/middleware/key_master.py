@@ -67,8 +67,9 @@ class key_master(WSGIContext):
                     node = catalog_functions.create_node(["A","B","C"],container,token,userid)
                     catalog_functions.send_message("INSERT",userid,node)
                     #Encrypt the resource
-                    old_cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container)
-                    env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
+                    if json_catalog != None:
+                        old_cryptotoken = catalog_functions.get_cryptotoken(json_catalog,container)
+                        env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
                     env['swift_crypto_fetch_new_token'] = token
                 elif False:#env['overencrypt'] =="QualcosaltroNo":
                     node = catalog_functions.create_node(None,container,None,userid)

@@ -238,7 +238,7 @@ def send_message(command,userid,node):
                 
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon', durable=True)
+    channel.queue_declare(queue='daemon1', durable=True)
        
     channel.confirm_delivery()
  
