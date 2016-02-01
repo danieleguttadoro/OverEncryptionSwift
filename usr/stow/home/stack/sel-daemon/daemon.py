@@ -73,16 +73,19 @@ def get_graph(swift_conn,user):
         return {}
 
     if cat[1] == '':
-        print "hdhdhd"
         return {} 
     
     return cf.load_graph(cat[1])
     
-def insert_new_node(swift_conn,user,token,node):
+def insert_new_node(swift_conn,user,token,node,first_call_check):
 
     node['CRYPTOTOKEN'] = new_cryptotoken(user,token)
      
     graph = get_graph(swift_conn,user)
+
+    if first_call_check:
+        acl_old = cf.get_node(graph,node['NODE_CHILD'])['ACL_CHILD']
+    else: acl_old = None
 
     graph = cf.remove_node(graph,node['NODE_CHILD'])
     graph = cf.add_node(graph,node,user,user)
@@ -91,14 +94,14 @@ def insert_new_node(swift_conn,user,token,node):
 
     swift_conn.put_object(user,user,json)
 
-    return
+    return acl_old
 
 
-def delete_unnecessary_node(swift_conn,user,node,check):
+def delete_unnecessary_node(swift_conn,user,node,first_call_check):
 
     graph = get_graph(user)
     
-    if check:
+    if first_call_check:
         f_node = get_node(graph,node['NODE_CHILD']) 
         if f_node == None:
             return None
@@ -133,12 +136,20 @@ def receive_message(ch, method, properties, body):
     #if command == 'CREATE':
     #    create_container(sender_id)    
     if command == 'INSERT':
-        list_usr = cf.stringTOlist(node['ACL_CHILD'])
+        acl_list = cf.stringTOlist(node['ACL_CHILD'])
         token = node['CRYPTOTOKEN']
-        for user_id in list_usr: 
+        swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+                                                       tenant_name= sender_id, auth_version='2.0')
+        old_acl_list = stringTOlist(insert_new_node(swift_conn,sender_id,token,node,True))
+        removed_users = set(old_acl_list).difference(set(acl_list))
+        for user_id in set(acl_list).difference(set(sender_id)): 
             swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
                                                        tenant_name= user_id, auth_version='2.0')
-            insert_new_node(swift_conn,user_id,token,node)
+            insert_new_node(swift_conn,user_id,token,node,False)
+        for user_id in removed_users:
+            swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+                                                       tenant_name= user_id, auth_version='2.0')
+            delete_unnecessary_node(swift_conn,user_id,node,False)            
     elif command == 'REMOVE':
         acl_list = delete_unnecessary_node(swift_conn,sender_id,node,True)
         if acl_list != None:

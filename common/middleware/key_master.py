@@ -17,6 +17,17 @@ from keystoneclient import session
 from keystoneclient.auth import identity
 ################
 
+#def acl(obj):
+#    if obj == 'object1':
+#        return ['142de5b2c87b4827861c536059c97c37','b48877a174e641fc91dd85540e8643b9']
+#    elif obj == 'object2':
+#        return ['142de5b2c87b4827861c536059c97c37']
+
+def to_do_overencryption():
+    # for now, random function to establish if we must do an overencryption. Later, we scan BEL-graph.
+    #return random.randint(0,1)
+    return 1
+
 class key_master(WSGIContext):
 
     def __init__(self,app, conf):
@@ -36,6 +47,9 @@ class key_master(WSGIContext):
         print "------------USERNAME, USERID----------------"
         print username 
         print userid
+        print "*************************"
+        print req.headers
+        print "*************************"
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
             container = req.split_path(1,4,True)[2]
@@ -53,19 +67,20 @@ class key_master(WSGIContext):
 	            #env['swift_crypto_fetch_crypto_token'] = cryptotoken
                   pass	     
             elif req.method== "POST":
-                if True:# env['overencrypt']=="QualcosaYes":         
+                if to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
                     token = catalog_functions.gen_token()
-                    node = catalog_functions.create_node(container,['bb24586d189d4cf480cdf837abc1e01d','a3974e8688cd4b8793bd62ab6606a46d'],token,userid)
+                    node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),token,userid)
                     catalog_functions.send_message("INSERT",userid,node)
                     #Encrypt the resource
                     if json_catalog != None:
                         old_cryptotoken = catalog_functions.get_cryptotoken(graph,container)
                         env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
                     env['swift_crypto_fetch_new_token'] = token
-                elif False:#env['overencrypt'] =="QualcosaltroNo":
-                    node = catalog_functions.create_node(None,container,None,userid)
-                    catalog_functions.send_message("REMOVE",userid,node)
+                else:#env['overencrypt'] =="QualcosaltroNo":
+                    pass
+                    #node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),None,userid)
+                    #catalog_functions.send_message("REMOVE",userid,node)
 		           
             elif req.method == "DELETE":
 	            #TODO
@@ -174,6 +189,7 @@ def raise_error(req,stat):
                         content_type="text/plain")
 
 """
+
 def filter_factory(global_conf, **local_conf):
     conf = global_conf.copy()
     conf.update(local_conf)

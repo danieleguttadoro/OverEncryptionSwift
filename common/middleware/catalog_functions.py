@@ -36,13 +36,16 @@ def get_catalog(app,auth_token,req,user_id,username):
     
 def create_node(node_child,acl_child,cryptotoken,ownertoken):
     Entry = {}
-    Entry["NODE_CHILD"] = node_child
-    Entry["ACL_CHILD"] = listTOstring(acl_child)
-    #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
-    Entry["CRYPTOTOKEN"] = cryptotoken# TokenDecEscape
-    Entry["OWNERTOKEN"] = ownertoken
-    #Entry["VERSIONTOKEN"] = '0'        # Left for future development
-    #Entry["TYPE"] = 'USER'
+    
+    if acl_child != None:
+        Entry["NODE_CHILD"] = node_child
+        Entry["ACL_CHILD"] = acl_child
+        #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
+        Entry["CRYPTOTOKEN"] = cryptotoken# TokenDecEscape
+        Entry["OWNERTOKEN"] = ownertoken
+        #Entry["VERSIONTOKEN"] = '0'        # Left for future development
+        #Entry["TYPE"] = 'USER'
+    
     return Entry
 
 #added in server
