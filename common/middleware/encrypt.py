@@ -21,41 +21,38 @@ class encrypt(WSGIContext):
         
         req = Request(env)
 
-        pid = os.fork()
-        if pid:
-            return self.app(env,start_response)
-        else:
-            while (True):
-                print env.get('HTTP_X_AUTH_TOKEN',None)
-                time.sleep(3)
-        """resp = req.get_response(self.app)
-        resource = resp.body
-        x = 0 
-        for c in encrypt_resource(str(resp.content_length),key): 
-            x += ord(c)
+        #if is_success(resp.status_int):
+        """if req.method = "POST":
 
-        resp.content_length = x   #crea una lambda function per calcolare x
-        resp.content_type = encrypt_resource(str(resp.content_type),key) #sembra un'istruzione inutile (linux riconosce che un file di testo)
-        resp.last_modified = encrypt_resource(str(resp.last_modified),key) #sembra un'istruzione inutile (linux mette come ultima modifica la data di quando lo scarichi)
-        resp.body = encrypt_resource(resp.body,key)
-        if is_success(resp.status_int):
             old_cryptotoken = env.get('swift_crypto_fetch_old_crypto_token',None)
             if old_cryptotoken != None:
-                token = crypto_functions.decrypt_resource(old_cryptotoken,crypto_functions.get_privatekey())
-                key = crypto_functions.decrypt_resource(crypto_functions.get_cryptokey(),token)
-                resource = crypto_functions.decrypt_resource(resp.body,key)
+                # ottengo lista dei file o metadati o cosa? Con get_container
+                #resp = req.get_response(self.app)
+                token = cyf.decrypt_resource(old_cryptotoken,cyf.get_privatekey())
+                #ottenere cryptokey con richiesta HEAD al container
+                key = cyf.decrypt_resource("prova",token)
+                #resource = cyf.decrypt_resource(resp.body,key)
                 #Da aggiungere last_modified e content length
-            
-            #Encrypt resource
-            token = env.get('swift_crypto_fetch_new_token',None)
-            if token != None:
-                cryptokey = crypto_functions.encrypt_resource(crypto_functions.get_key(),token)
-                #da terminare
-            #return encrypt_response(req,key,resp)
+            else: 
+                key = cyf.gen_key()
+                #cripto tutti i file all'interno del container con la key
+                #for file in lista_file_container 
+                    pid = os.fork()
+                    if pid:
+                        #tramite HEAD ottengo le info (nome, size, ..) del container, le cripto con la key, e faccio POST dopo (1)
+                    else:
+                        # I AM THE SON!
+                        # cripto il file, faccio la put  e muoio
 
-            
+            new_token = env.get('swift_crypto_fetch_new_token',None)
+            if new_token != None:
+                
+                cryptokey = cyf.encrypt_resource(key,new_token)
+                # (1) aggiungo cryptokey come metadato e tramite POST salvo tutti container-metadata
+                    
+        """                
         return self.app(env, start_response)       
-        """
+        
 
 def filter_factory(global_conf, **local_conf):
     conf = global_conf.copy()

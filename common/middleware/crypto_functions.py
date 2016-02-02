@@ -23,16 +23,19 @@ DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
 def get_key():
     return "key"
 
-def get_cryptokey():
-    print "Retrieve_the_key"
-    key = '01234567890123456789012345678901' # 32 char length
-    return key
+#def get_cryptokey():
+#    print "Retrieve_the_key"
+#    key = '01234567890123456789012345678901' # 32 char length
+#    return key
 
 def get_privatekey():
     return '01234567890123456789012345678901'
 
 def gen_token():
     return "token"
+
+def gen_key():
+    return "key"
 
 def decrypt_resource (obj, secret):
     
@@ -58,3 +61,12 @@ def encrypt_resource(obj,secret):
     print 'Encrypted string:', encoded
 
     return encoded
+
+def encrypt_response(resp,key)
+
+   #resp.content_length = encrypt_resource(os.urandom(BLOCKSIZE),key))
+   #resp.content_type = encrypt_resource(str(resp.content_type),key) 
+   #resp.last_modified = encrypt_resource(str(resp.last_modified),key) 
+   resp.body = encrypt_resource(resp.body,key) 
+
+   return resp

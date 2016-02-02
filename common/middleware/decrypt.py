@@ -19,7 +19,8 @@ class decrypt(WSGIContext):
                
         resp = req.get_response(self.app)
         cryptotoken = req.environ.get('swift_crypto_fetch_crypto_token',None)
-        #print cryptotoken
+        print "|||||||||||||||||||||||||||||||||||||||||||"
+        print resp.body
         if cryptotoken != None:
             print "----------------------CRYPTOTOKEN VALID --------------------------"
             token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
