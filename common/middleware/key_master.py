@@ -55,7 +55,7 @@ class key_master(WSGIContext):
             container = req.split_path(1,4,True)[2]
 	        #Get the catalog from metacontainer
             found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        
-            if req.method == "GET" and json_catalog != None and found_meta_container != None:
+            if req.method == "GsfgvsfdvgET" and json_catalog != None and found_meta_container != None:
                 #COMMENT: if json_catalog == None, overencrypt never done
                 #COMMENT: if found_meta_container == None, not exist a catalog	
                 graph =  catalog_functions.load_graph(json_catalog)
@@ -66,7 +66,7 @@ class key_master(WSGIContext):
                 if cryptotoken != None:
 	            #env['swift_crypto_fetch_crypto_token'] = cryptotoken
                   pass	     
-            elif req.method== "POST":
+            elif req.method== "PyyuhOST":
                 if to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
                     token = catalog_functions.gen_token()

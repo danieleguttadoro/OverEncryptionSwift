@@ -62,7 +62,7 @@ def encrypt_resource(obj,secret):
 
     return encoded
 
-def encrypt_response(resp,key)
+def encrypt_response(resp,key):
 
    #resp.content_length = encrypt_resource(os.urandom(BLOCKSIZE),key))
    #resp.content_type = encrypt_resource(str(resp.content_type),key) 
