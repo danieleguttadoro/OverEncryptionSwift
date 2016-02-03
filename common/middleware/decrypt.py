@@ -29,14 +29,17 @@ class decrypt(WSGIContext):
             obj = req.split_path(1,4,True)[3]
             #TODO: Decrypt object e container con tutti i file ok. CONTROLLARE SOLO I NOMI
             #TODO: Le altre funzioni del crypto_functions.py sono da terminare (per adesso sono statiche)
-            if obj != None and cryptotoken != None and cryptokey != None:
-                print "----------CRYPTOTOKEN VALID----------"
-                token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
-                key = cyf.decrypt_resource(cyf.get_cryptokey(),token)
+            if obj != None and cryptokey != None:
+                if cryptotoken != None:
+                    print "----------CRYPTOTOKEN VALID----------"
+                    token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
+                    key = cyf.decrypt_resource(cryptokey,token)
+                else:
+                    key = cryptokey
                 resp.body = cyf.decrypt_resource(resp.body,key) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 #last_modified = cyf.decrypt_resource(resp.last_modified,key)
-                resp.content_lenght = len(resp.body)     
+                resp.content_lenght = len(resp.body)  
         return resp  
 
 def filter_factory(global_conf, **local_conf):

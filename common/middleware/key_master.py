@@ -30,11 +30,10 @@ def to_do_overencryption():
 
 def create_head_req(req):
     version, account, container, obj = req.split_path(1,4,True)
-    new_headers = req.headers
-    new_headers.method = "HEAD"
     path_info = "/".join(["",version,account,container])
-    return Request.blank(path_info,None,new_headers,None)
-
+    new_head_req = Request.blank(path_info,None,req.headers,None)
+    new_head_req.method = 'HEAD'
+    return new_head_req
 
 class key_master(WSGIContext):
 
@@ -76,9 +75,9 @@ class key_master(WSGIContext):
 	                #COMMENT: Setto il cryptotoken per renderlo disponibile al decrypt
                     env['swift_crypto_fetch_crypto_token'] = cryptotoken
                     #COMMENT: Richiedo la cryptokey relativa al container e la inserisco nell'environ per il decrypt
-                    head_req = create_head_req(req)
-                    head_resp = head_req.get_response(self.app)
-                    env['swift_crypto_fetch_crypto_key'] = head_resp['X-Container-Sysmeta-Crypto-key']
+                head_req = create_head_req(req)
+                head_resp = head_req.get_response(self.app)
+                env['swift_crypto_fetch_crypto_key'] = head_resp.get('X-Container-Sysmeta-Crypto-key',None)
                     	     
             elif req.method== "PyyuhOST":
                 if to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
