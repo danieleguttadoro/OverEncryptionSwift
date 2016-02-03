@@ -60,7 +60,6 @@ def create_container(swift_conn,owner_cat):
     except:
         sys.stderr.write('Error while setting the %s ACL_headers' % owner_cat)
 
-
     return
 
 
@@ -227,7 +226,7 @@ if __name__ == '__main__':
     UUID = this_user[0].id   
 
     admin_role = kc_conn.roles.find(name='admin')
-      
+    
     N_INI = 1 
     ctrl_list = []
 
@@ -251,4 +250,5 @@ if __name__ == '__main__':
             create_consumer(ctrlen/3,ctrl_list)
 
         time.sleep(3)      
+    
     # never reached

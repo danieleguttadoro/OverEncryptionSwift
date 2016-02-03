@@ -27,48 +27,75 @@ class encrypt(WSGIContext):
         new_req = Request.blank(req.path_info,None,new_headers,None)
         resp = new_req.get_response(self.app)'''
         print "-----------------List OBJECT--------------------------"
-        
+       """ 
         #list_obj = resp.body.split('\n')[:-1]
+        req.headers['X-Container-Sysmeta-crypto'] = "Danieleeeeeeeeeeeeeeeee"
         print req.headers
-        req.headers['coglione1'] = "Daniele"
         username   = env.get('HTTP_X_USER_NAME',None)
         resp = req.get_response(self.app)
-        req.headers.method = "GET"
-        resp2 = req.get_response(self.app)
+        req.headers.method = "HEAD"
+        req2 = Request.blank(req.path_info,None,req.headers,None)
+        resp2 = req2.get_response(self.app)
         print "RESP...................................."
         print resp2.headers
-        '''
+        time.sleep(6)
+        """
         #if is_success(resp.status_int):
-        if req.method == "ttPOST" and username != "admin" and username != None:
-
+        if req.method == "POST" and username != "admin" and username != None:
+            
+            version, account, container, obj = req.split_path(1,4,True)
+            new_headers = req.headers
+            new_headers.method = "HEAD"
+            new_req_head = Request.blank(req.path_info,None,new_headers,None)
+            head_resp = new_req_head.get_response(self.app)
+            
             old_cryptotoken = env.get('swift_crypto_fetch_old_crypto_token',None)
             if old_cryptotoken != None:
-                
-                #resp = req.get_response(self.app)
-                token = cyf.decrypt_resource(old_cryptotoken,cyf.get_privatekey())
-                #ottenere cryptokey con richiesta HEAD al container
-                key = cyf.decrypt_resource("prova",token)
+                old_token = cyf.decrypt_resource(old_cryptotoken,cyf.get_privatekey())
+                cryptokey = head_resp.headers.get('X-Container-Sysmeta-Crypto-Key',None)
+                key = cyf.decrypt_resource(cryptokey,old_token)
                 #Da aggiungere last_modified e content length
             else: 
                 key = cyf.gen_key()
-                #HEAD metadati del container e post Dopo
-                new_req.headers.method = "HEAD"
-                resp = new_req.get_response(self.app)
+                list_file = head_resp.body.split('\n')[:-1]
+                
                 #PUT di un nuovo container con il nome criptato
-                for obj in list_obj: 
+                #new_headers.method = "PUT"
+                #cryptocontainer = cyf.encrypt_resource(container,key)
+                #new_path_info = "/".join(version,account,cryptocontainer)
+                #new_req_put = Request.blank(new_path_info,None,new_headers,None)
+                
+                sons_list = []
+                for obj in list_file: 
                     pid = os.fork()
-                    if not pid:
+                    if pid:
+                        sons_list.append(pid)
+                    else:
                         print " I AM THE SON! "
                         # get file dalocntainer vecchio, cripto il file, faccio la put del file nel ocntainer criptato  e muoio
-                #Creo un fratellastro che aspetti tutti i processi che hanno criptato gli oggetti, e cancella il vecchio container
                 
+                #Creo un fratellastro che aspetti tutti i processi che hanno criptato gli oggetti, e cancella il vecchio container
+                #pid = os.fork()
+                #if not pid:
+                #    while sons_list:
+                        # cicla finche la lista non è vuota. 
+                        # In python-style-guide: per python (strings, lists, tuples) empty are false
+                        #time.sleep(3)
+                    #lista vuota
+                    #cancella il vecchio container e muori
+                    
+
             new_token = env.get('swift_crypto_fetch_new_token',None)
             if new_token != None:
                 
                 cryptokey = cyf.encrypt_resource(key,new_token)
-                # (1) aggiungo cryptokey come metadato, e tramite POST salvo tutti container-metadata
+                
+                new_headers['X-Container-Sysmeta-Crypto-Key'] = cryptokey
+                new_headers.method = "POST"
+                new_req_post = Request.blank(req.path_info,None,new_headers,None)
+                
                     
-        '''                
+                        
         return self.app(env, start_response)       
         
 
