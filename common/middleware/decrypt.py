@@ -1,5 +1,6 @@
 from swift import gettext_ as _
-
+import md5
+import time
 from swift.common.swob import Request, HTTPServerError, wsgify
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
@@ -16,19 +17,26 @@ class decrypt(WSGIContext):
    @wsgify
    def __call__(self, req):
         print "----------------- DECRYPT -----------------------"
-               
         resp = req.get_response(self.app)
-        cryptotoken = req.environ.get('swift_crypto_fetch_crypto_token',None)
-        print "|||||||||||||||||||||||||||||||||||||||||||"
-        print resp.body
-        if cryptotoken != None:
-            print "----------------------CRYPTOTOKEN VALID --------------------------"
-            token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
-            key = cyf.decrypt_resource(cyf.get_cryptokey(),token)
-            response = cyf.decrypt_resource(resp.body,key)
-            last_modified = cyf.decrypt_resource(resp.last_modified,key)
-            resp.content_lenght = len(resp.body)
-	    
+        env = req.environ
+        username = env.get('HTTP_X_USER_NAME',None)
+        #Decrypt file/container pnly if request method is get and username != None or ceilometer
+        if req.method == "GET" and username != 'admin' and username != None:               
+            cryptotoken = req.environ.get('swift_crypto_fetch_crypto_token',None)       
+            cryptokey = req.environ.get('swift_crypto_fetch_crypto_key',None)
+            print resp.headers
+            time.sleep(2)
+            obj = req.split_path(1,4,True)[3]
+            #TODO: Decrypt object e container con tutti i file ok. CONTROLLARE SOLO I NOMI
+            #TODO: Le altre funzioni del crypto_functions.py sono da terminare (per adesso sono statiche)
+            if obj != None and cryptotoken != None and cryptokey != None:
+                print "----------CRYPTOTOKEN VALID----------"
+                token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
+                key = cyf.decrypt_resource(cyf.get_cryptokey(),token)
+                resp.body = cyf.decrypt_resource(resp.body,key) 
+                resp.headers['Etag'] = md5.new(resp.body).hexdigest()
+                #last_modified = cyf.decrypt_resource(resp.last_modified,key)
+                resp.content_lenght = len(resp.body)     
         return resp  
 
 def filter_factory(global_conf, **local_conf):
