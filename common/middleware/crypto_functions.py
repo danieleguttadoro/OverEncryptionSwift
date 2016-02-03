@@ -21,7 +21,7 @@ EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
 DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
 
 def get_key():
-    return "key"
+    return '01234567890123456789012345678901'
 
 #def get_cryptokey():
 #    print "Retrieve_the_key"
@@ -35,7 +35,7 @@ def gen_token():
     return "token"
 
 def gen_key():
-    return "key"
+    return '01234567890123456789012345678901'
 
 def decrypt_resource (obj, secret):
     
