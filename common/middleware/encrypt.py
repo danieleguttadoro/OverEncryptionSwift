@@ -20,12 +20,10 @@ class encrypt(WSGIContext):
         print "----------------- ENCRYPT -----------------------"
         req = Request(env)
         print req.method
-        
         ''' 
         #Create request to obtain list object
         new_headers = req.headers
-        new_headers.method = "POST"
-        new_headers['CRYPTO'] = "PROVAPROVA"
+        new_headers.method = "HEAD"
         new_req = Request.blank(req.path_info,None,new_headers,None)
         resp = new_req.get_response(self.app)'''
         print "-----------------List OBJECT--------------------------"
