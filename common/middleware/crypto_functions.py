@@ -21,21 +21,19 @@ EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
 DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
 
 def get_key():
-    return "key"
+    return "44444567890123456789012345678901"
 
-#def get_cryptokey():
-#    print "Retrieve_the_key"
-#    key = '01234567890123456789012345678901' # 32 char length
-#    return key
-
+def get_cryptokey():
+    return 'lFcV0dBnmWXzrJh2WaME4wen5MCct56FtOM/XFaDg62DEW85MOhYz+8KXiwj15itgxFvOTDoWM/vCl4sI9eYrQ=='
+       
 def get_privatekey():
     return '01234567890123456789012345678901'
 
 def gen_token():
-    return "token"
+    return "01234567890123456789012345678901"
 
 def gen_key():
-    return "key"
+    return "44444567890123456789012345678901"
 
 def decrypt_resource (obj, secret):
     
@@ -47,7 +45,7 @@ def decrypt_resource (obj, secret):
 
     # decode the encoded string
     decoded = DecodeAES(cipher, obj)
-    print 'Decrypted string:', decoded 
+    #print 'Decrypted string:', decoded 
     
     return decoded
 
@@ -58,7 +56,7 @@ def encrypt_resource(obj,secret):
     
     # encode a string
     encoded = EncodeAES(cipher, obj)
-    print 'Encrypted string:', encoded
+    #print 'Encrypted string:', encoded
 
     return encoded
 
