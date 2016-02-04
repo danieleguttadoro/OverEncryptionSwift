@@ -62,7 +62,7 @@ class encrypt(WSGIContext):
                         #print new_path_info 
                         #time.sleep(5)
                         new_req = Request.blank(new_path_info,None,req.headers,None)
-                        new_req.method = = 'GET'
+                        new_req.method = 'GET'
                         get_resp = new_req.get_response(self.app)
                         #print "CLEAR BODY " + obj
                         #print get_resp.body
