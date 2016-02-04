@@ -103,16 +103,19 @@ def delete_unnecessary_node(swift_conn,user,node,first_call_check):
 
     graph = get_graph(swift_conn,user)
     
-    if first_call_check:
-        f_node = cyf.get_node(graph,node['NODE_CHILD']) 
-        if f_node == None:
-            return None
-    
-    graph = cf.remove_node(graph,node['NODE_CHILD'])
-    json = cf.compose_graph(graph,user)
-    swift_conn.put_object(user,user,json)
+    acl_old = None
+
+    if graph:
+        if first_call_check:
+            f_node = cf.get_node(graph,node['NODE_CHILD']) 
+            if f_node != None:
+                acl_old = f_node['ACL_CHILD']
+                                    
+        graph = cf.remove_node(graph,node['NODE_CHILD'])
+        json = cf.compose_graph(graph,user)
+        swift_conn.put_object(user,user,json)
         
-    return node['ACL_CHILD']
+    return acl_old 
 
 
 def consumer_task():
@@ -155,9 +158,11 @@ def receive_message(ch, method, properties, body):
                                                        tenant_name= user_id, auth_version='2.0')
             delete_unnecessary_node(swift_conn,user_id,node,False)            
     elif command == 'REMOVE':
+        swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
+                                                       tenant_name= sender_id, auth_version='2.0')
         acl_list = delete_unnecessary_node(swift_conn,sender_id,node,True)
         if acl_list != None:
-            list_usr = stringTOlist(acl_list)
+            list_usr = cf.stringTOlist(acl_list)
             list_usr.remove(sender_id)
             for user_id in list_usr:
                 swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,

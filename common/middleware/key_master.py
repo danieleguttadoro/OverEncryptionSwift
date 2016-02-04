@@ -27,7 +27,7 @@ from keystoneclient.auth import identity
 def to_do_overencryption():
     # for now, random function to establish if we must do an overencryption. Later, we scan BEL-graph.
     #return random.randint(0,1)
-    return 1
+    return 10
 
 def create_head_req(req):
     version, account, container, obj = req.split_path(1,4,True)
@@ -72,7 +72,7 @@ class key_master(WSGIContext):
                 head_req = create_head_req(req)
                 head_resp = head_req.get_response(self.app)
                 #env['swift_crypto_fetch_crypto_key'] = "lFcV0dBnmWXzrJh2WaME4wen5MCct56FtOM/XFaDg62DEW85MOhYz+8KXiwj15itgxFvOTDoWM/vCl4sI9eYrQ=="
-                env['swift_crypto_fetch_crypto_key'] = head_resp.headers.get('X-Container-Sysmeta-Crypto-key',None)
+                env['swift_crypto_fetch_crypto_key'] = head_resp.headers.get('x-container-sysmeta-crypto-key',None)
                     	     
             elif req.method== "POST":
                 if to_do_overencryption():         
@@ -88,10 +88,24 @@ class key_master(WSGIContext):
                         env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
                     env['swift_crypto_fetch_new_token'] = token
                 else:
-                    pass
-                    #node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),None,userid)
-                    #catalog_functions.send_message("REMOVE",userid,node)
-		           
+                    if json_catalog != None:
+                        graph = catalog_functions.load_graph(json_catalog)
+                        node = catalog_functions.get_node(graph,container)
+                        if node != None:
+                            catalog_functions.send_message("REMOVE",userid,node)
+                            cryptotoken = node['CRYPTOTOKEN']
+                            token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
+                            
+                            new_req = create_head_req(req)
+                            head_resp = new_req.get_response(self.app)
+                            cryptokey = head_resp.headers.get('x-container-sysmeta-crypto-key',None)
+                            key = cyf.decrypt_resource(cryptokey,token)
+
+                            new_req.headers['x-container-sysmeta-crypto-key'] = key
+                            new_req.method = 'POST'
+                            new_req.get_response(self.app)
+                            		       
+                                
             elif req.method == "DELETE":
 	            #TODO
       
