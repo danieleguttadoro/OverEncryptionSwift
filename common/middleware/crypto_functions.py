@@ -1,9 +1,10 @@
 import os
+import binascii
 import base64
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
-
+import codecs
 # the block size for the cipher object; must be 16, 24, or 32 for AES
 BLOCK_SIZE = 32
 
@@ -24,14 +25,21 @@ def get_privatekey():
     return '01234567890123456789012345678901'
 
 def gen_token():
-    
+     
     # generate a random secret token
-    return os.urandom(BLOCK_SIZE) 
-
+    random_byte = os.urandom(BLOCK_SIZE/2) 
+    token_ascii = binascii.hexlify(random_byte)
+    print len(token_ascii)
+    return token_ascii
+    
 def gen_key():
     
-    # generate a random secret key
-    return os.urandom(BLOCK_SIZE)
+    # generate a random secret token
+    random_byte = os.urandom(BLOCK_SIZE/2) 
+    token_ascii = binascii.hexlify(random_byte)
+    print len(token_ascii)
+    return token_ascii
+
 
 def decrypt_resource (obj, secret):
     

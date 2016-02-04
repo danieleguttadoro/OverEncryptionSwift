@@ -21,8 +21,8 @@ AUTH_URL = 'http://localhost:5000/v2.0'
 
 
 def new_cryptotoken(user,token):
-
-    return cr.encrypt(key=user,content=token)
+    key = cr.get_privatekey()
+    return cr.encrypt_resource(obj=token,secret=key)
 
 
 def create_container(swift_conn,owner_cat):
@@ -77,16 +77,18 @@ def get_graph(swift_conn,user):
     return cf.load_graph(cat[1])
     
 def insert_new_node(swift_conn,user,token,node,first_call_check):
-
+    print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    print node
     node['CRYPTOTOKEN'] = new_cryptotoken(user,token)
+    print node
      
     graph = get_graph(swift_conn,user)
+    acl_old =[]
+    if graph:
+        if first_call_check:
+            acl_old = cf.get_node(graph,node['NODE_CHILD'])['ACL_CHILD']
 
-    if first_call_check:
-        acl_old = cf.get_node(graph,node['NODE_CHILD'])['ACL_CHILD']
-    else: acl_old = None
-
-    graph = cf.remove_node(graph,node['NODE_CHILD'])
+        graph = cf.remove_node(graph,node['NODE_CHILD'])
     graph = cf.add_node(graph,node,user,user)
 
     json = cf.compose_graph(graph,user)    
@@ -117,11 +119,11 @@ def consumer_task():
     connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon9', durable=True)
+    channel.queue_declare(queue='daemon10', durable=True)
            
     channel.basic_qos(prefetch_count=1)    
     channel.basic_consume(receive_message,
-                      queue='daemon9')
+                      queue='daemon10')
 
     print(' [%d] Waiting for messages...' % os.getpid())
     channel.start_consuming()
@@ -135,11 +137,13 @@ def receive_message(ch, method, properties, body):
     #if command == 'CREATE':
     #    create_container(sender_id)    
     if command == 'INSERT':
+        print "*****************************************"
+        print node
         acl_list = cf.stringTOlist(node['ACL_CHILD'])
         token = node['CRYPTOTOKEN']
         swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,
                                                        tenant_name= sender_id, auth_version='2.0')
-        old_acl_list = stringTOlist(insert_new_node(swift_conn,sender_id,token,node,True))
+        old_acl_list = cf.stringTOlist(insert_new_node(swift_conn,sender_id,token,node,True))
         removed_users = set(old_acl_list).difference(set(acl_list))
         for user_id in set(acl_list).difference(set(sender_id)): 
             swift_conn = swiftclient.client.Connection(user= ADMIN_USER, key= ADMIN_PASS, authurl= AUTH_URL,

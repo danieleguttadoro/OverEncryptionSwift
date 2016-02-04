@@ -31,18 +31,19 @@ def get_catalog(app,auth_token,req,user_id,username):
         return 'Found', None
     return 'Found', res_catalog.body
     
-def create_node(node_child,acl_child,cryptotoken,ownertoken):
+def create_node(node_child,acl_child,token,ownertoken):
     Entry = {}
     
     if acl_child != None:
         Entry["NODE_CHILD"] = node_child
         Entry["ACL_CHILD"] = acl_child
         #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
-        Entry["CRYPTOTOKEN"] = cryptotoken# TokenDecEscape
+        Entry["CRYPTOTOKEN"] = token# TokenDecEscape
         Entry["OWNERTOKEN"] = ownertoken
         #Entry["VERSIONTOKEN"] = '0'        # Left for future development
         #Entry["TYPE"] = 'USER'
-    
+    #print "Entry"
+    #print Entry   
     return Entry
 
 #added in server
@@ -209,11 +210,6 @@ def compose_graph(graph,userid):
      return json.dumps(Entry, indent=4, sort_keys=True)
  
 
-def new_cryptotoken(node):
-    #TODO
-    return "aaaaaaaa4"
-
-
     #def overencrypt(user,catalog,container_list,acl_list):overencrypt non sappiamo se container list viene passato singolarmente o come ua lista d container
     #    global graph
     #    graph = load_graph(catalog)
@@ -237,17 +233,16 @@ def send_message(command,userid,node):
                 
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon9', durable=True)
+    channel.queue_declare(queue='daemon10', durable=True)
        
     channel.confirm_delivery()
  
     print " *********** Send Message *************"
-    time.sleep(5)
     node_s = json.dumps(node, indent=4, sort_keys=True)
     msg = command +"#"+ userid + "#" + node_s
     try:  
         channel.basic_publish(exchange='',
-                              routing_key='daemon9',
+                              routing_key='daemon10',
                               body=msg,
                               properties=pika.BasicProperties(
                               delivery_mode = 2, # make message persistent

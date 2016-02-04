@@ -7,7 +7,7 @@ from swift.common.swob import wsgify
 
 #To use encswift
 import catalog_functions
-import crypto_functions
+import crypto_functions as cyf
 import time
 #To use barbican
 import sys
@@ -75,10 +75,11 @@ class key_master(WSGIContext):
                 env['swift_crypto_fetch_crypto_key'] = head_resp.get('X-Container-Sysmeta-Crypto-key',None)
                     	     
             elif req.method== "POST":
-                if to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
+                if True:#to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
-                    token = crypto_functions.gen_token()
-                    node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),token,userid)
+                    token = cyf.gen_token()
+                    node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),
+                                                            token,userid)
                     catalog_functions.send_message("INSERT",userid,node)
                     #Encrypt the resource
                     if json_catalog != None:
