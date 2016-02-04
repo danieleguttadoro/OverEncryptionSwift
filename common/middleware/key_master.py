@@ -7,6 +7,7 @@ from swift.common.swob import wsgify
 
 #To use encswift
 import catalog_functions
+import crypto_functions
 import time
 #To use barbican
 import sys
@@ -44,28 +45,20 @@ class key_master(WSGIContext):
     def __call__(self, env, start_response):
         
         print "----------------- KEY_MASTER -----------------------"
-        #barbican_client()
         req = Request(env)
-        #resp = req.get_response(self.app)
-        #COMMENT: Finding user and method
+        #barbican_client()
+        #COMMENT: Finding user and token
         username   = env.get('HTTP_X_USER_NAME',None)
         userid     = env.get('HTTP_X_USER_ID',None)
         auth_token = env.get('HTTP_X_AUTH_TOKEN',None)
-        print "------------USERNAME, USERID----------------"
-        print username 
-        print userid
-        print "*************************"
-        print req.headers
-        print "*************************"
+        print "USERNAME ----> ", username
+        print "USERID   ----> ", userid
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
             container = req.split_path(1,4,True)[2]
 	        #Get the catalog from metacontainer
             found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        
-            if req.method =="GET":
-                env['swift_crypto_fetch_crypto_token'] = "XZmBROlPFEZbfTn0PPGKVwen5MCct56FtOM/XFaDg62DEW85MOhYz+8KXiwj15itgxFvOTDoWM/vCl4sI9eYrQ=="
-                env['swift_crypto_fetch_crypto_key'] = "lFcV0dBnmWXzrJh2WaME4wen5MCct56FtOM/XFaDg62DEW85MOhYz+8KXiwj15itgxFvOTDoWM/vCl4sI9eYrQ=="
-            if req.method == "GsfgvsfdvgET" and json_catalog != None and found_meta_container != None:
+            if req.method == "GET" and json_catalog != None and found_meta_container != None:
                 #COMMENT: if json_catalog == None, overencrypt never done
                 #COMMENT: if found_meta_container == None, not exist a catalog	
                 graph =  catalog_functions.load_graph(json_catalog)
@@ -73,16 +66,18 @@ class key_master(WSGIContext):
                 cryptotoken = catalog_functions.get_cryptotoken(graph,container) 
                 if cryptotoken != None:
 	                #COMMENT: Setto il cryptotoken per renderlo disponibile al decrypt
+                    #env['swift_crypto_fetch_crypto_token'] = "XZmBROlPFEZbfTn0PPGKVwen5MCct56FtOM/XFaDg62DEW85MOhYz+8KXiwj15itgxFvOTDoWM/vCl4sI9eYrQ=="
                     env['swift_crypto_fetch_crypto_token'] = cryptotoken
                     #COMMENT: Richiedo la cryptokey relativa al container e la inserisco nell'environ per il decrypt
                 head_req = create_head_req(req)
                 head_resp = head_req.get_response(self.app)
+                #env['swift_crypto_fetch_crypto_key'] = "lFcV0dBnmWXzrJh2WaME4wen5MCct56FtOM/XFaDg62DEW85MOhYz+8KXiwj15itgxFvOTDoWM/vCl4sI9eYrQ=="
                 env['swift_crypto_fetch_crypto_key'] = head_resp.get('X-Container-Sysmeta-Crypto-key',None)
                     	     
-            elif req.method== "PyyuhOST":
+            elif req.method== "POST":
                 if to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
-                    token = catalog_functions.gen_token()
+                    token = crypto_functions.gen_token()
                     node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),token,userid)
                     catalog_functions.send_message("INSERT",userid,node)
                     #Encrypt the resource

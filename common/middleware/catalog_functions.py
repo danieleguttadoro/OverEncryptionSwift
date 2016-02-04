@@ -10,9 +10,6 @@ from swift.proxy.controllers.base import Controller
 from keystoneclient.v2_0 import client
 from keystoneclient.exceptions import Unauthorized
 
-def gen_token():
-    return "aaa"
-
 def conn_keystone(username,userid,auth_token):
     try:
         keystone = client.Client(username=username,token = auth_token,tenant_name=userid,auth_url="http://127.0.0.1:5000/v2.0")
