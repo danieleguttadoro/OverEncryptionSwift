@@ -55,6 +55,7 @@ class key_master(WSGIContext):
         print "USERID   ----> ", userid
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
+            time.sleep(4)
             container = req.split_path(1,4,True)[2]
 	        #Get the catalog from metacontainer
             found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        
@@ -75,7 +76,7 @@ class key_master(WSGIContext):
                 env['swift_crypto_fetch_crypto_key'] = head_resp.headers.get('X-Container-Sysmeta-Crypto-key',None)
                     	     
             elif req.method== "POST":
-                if True:#to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
+                if to_do_overencryption():         
                     #LISTA ABC DA RICAVARE DALLA MODIFICA DELLA ACL O DA OVERENCRYPT
                     token = cyf.gen_token()
                     node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),
@@ -87,7 +88,7 @@ class key_master(WSGIContext):
                         old_cryptotoken = catalog_functions.get_cryptotoken(graph,container)
                         env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
                     env['swift_crypto_fetch_new_token'] = token
-                else:#env['overencrypt'] =="QualcosaltroNo":
+                else:
                     pass
                     #node = catalog_functions.create_node(container,req.headers.get('x-container-meta-acl-label',None),None,userid)
                     #catalog_functions.send_message("REMOVE",userid,node)

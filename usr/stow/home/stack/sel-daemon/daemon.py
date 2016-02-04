@@ -101,7 +101,7 @@ def insert_new_node(swift_conn,user,token,node,first_call_check):
 
 def delete_unnecessary_node(swift_conn,user,node,first_call_check):
 
-    graph = get_graph(user)
+    graph = get_graph(swift_conn,user)
     
     if first_call_check:
         f_node = get_node(graph,node['NODE_CHILD']) 
@@ -120,11 +120,11 @@ def consumer_task():
     connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon10', durable=True)
+    channel.queue_declare(queue='daemon11', durable=True)
            
     channel.basic_qos(prefetch_count=1)    
     channel.basic_consume(receive_message,
-                      queue='daemon10')
+                      queue='daemon11')
 
     print(' [%d] Waiting for messages...' % os.getpid())
     channel.start_consuming()
@@ -218,7 +218,7 @@ def check_status():
             count += 1
         elif proc.status == psutil.STATUS_RUNNING:
             count -= 1
-        else: sys.stderr.write('Error on Process Status')
+        #else: sys.stderr.write('Error on Process Status')
 
     return count
 
@@ -232,7 +232,7 @@ if __name__ == '__main__':
 
     admin_role = kc_conn.roles.find(name='admin')
     
-    N_INI = 1 
+    N_INI = 8  
     ctrl_list = []
 
     signal.signal(signal.SIGINT,handler)

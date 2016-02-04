@@ -1,5 +1,6 @@
 from swift import gettext_ as _
 
+
 from swift.common.swob import Request, HTTPServerError
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
@@ -21,7 +22,7 @@ class encrypt(WSGIContext):
         #print req.method
         
         username   = env.get('HTTP_X_USER_NAME',None)
-        
+        time.sleep(3)
         #if is_success(resp.status_int):
         if req.method == "POST" and username != "admin" and username != None:
             
@@ -34,6 +35,9 @@ class encrypt(WSGIContext):
             old_cryptotoken = env.get('swift_crypto_fetch_old_crypto_token',None)
             if old_cryptotoken != None:
                 old_token = cyf.decrypt_resource(old_cryptotoken,cyf.get_privatekey())
+                print old_token
+                print len(old_token)
+                time.sleep(5)
                 cryptokey = head_resp.headers.get('X-Container-Sysmeta-Crypto-Key',None)
                 key = cyf.decrypt_resource(cryptokey,old_token)
                 #Da aggiungere last_modified e content length

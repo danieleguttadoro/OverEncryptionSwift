@@ -237,7 +237,7 @@ def send_message(command,userid,node):
                 
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
-    channel.queue_declare(queue='daemon10', durable=True)
+    channel.queue_declare(queue='daemon11', durable=True)
        
     channel.confirm_delivery()
  
@@ -246,7 +246,7 @@ def send_message(command,userid,node):
     msg = command +"#"+ userid + "#" + node_s
     try:  
         channel.basic_publish(exchange='',
-                              routing_key='daemon10',
+                              routing_key='daemon11',
                               body=msg,
                               properties=pika.BasicProperties(
                               delivery_mode = 2, # make message persistent
