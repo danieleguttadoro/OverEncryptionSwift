@@ -61,8 +61,8 @@ class key_master(WSGIContext):
             if req.method == "GET" and json_catalog != None and found_meta_container != None:
                 #COMMENT: if json_catalog == None, overencrypt never done
                 #COMMENT: if found_meta_container == None, not exist a catalog	
-                graph =  catalog_functions.load_graph(json_catalog)
                 #COMMENT: Scan the graph to obtain the key and insert it in the env (GET) or to modify the graph in order to add or delete a key (PUT)
+                graph =  catalog_functions.load_graph(json_catalog)
                 cryptotoken = catalog_functions.get_cryptotoken(graph,container) 
                 if cryptotoken != None:
 	                #COMMENT: Setto il cryptotoken per renderlo disponibile al decrypt
@@ -72,7 +72,7 @@ class key_master(WSGIContext):
                 head_req = create_head_req(req)
                 head_resp = head_req.get_response(self.app)
                 #env['swift_crypto_fetch_crypto_key'] = "lFcV0dBnmWXzrJh2WaME4wen5MCct56FtOM/XFaDg62DEW85MOhYz+8KXiwj15itgxFvOTDoWM/vCl4sI9eYrQ=="
-                env['swift_crypto_fetch_crypto_key'] = head_resp.get('X-Container-Sysmeta-Crypto-key',None)
+                env['swift_crypto_fetch_crypto_key'] = head_resp.headers.get('X-Container-Sysmeta-Crypto-key',None)
                     	     
             elif req.method== "POST":
                 if True:#to_do_overencryption:# env['overencrypt']=="QualcosaYes":         
@@ -83,6 +83,7 @@ class key_master(WSGIContext):
                     catalog_functions.send_message("INSERT",userid,node)
                     #Encrypt the resource
                     if json_catalog != None:
+                        graph =  catalog_functions.load_graph(json_catalog)
                         old_cryptotoken = catalog_functions.get_cryptotoken(graph,container)
                         env['swift_crypto_fetch_old_crypto_token'] = old_cryptotoken
                     env['swift_crypto_fetch_new_token'] = token

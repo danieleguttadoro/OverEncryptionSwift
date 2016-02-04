@@ -77,17 +77,18 @@ def get_graph(swift_conn,user):
     return cf.load_graph(cat[1])
     
 def insert_new_node(swift_conn,user,token,node,first_call_check):
-    print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-    print node
+    
     node['CRYPTOTOKEN'] = new_cryptotoken(user,token)
-    print node
      
     graph = get_graph(swift_conn,user)
-    acl_old =[]
+    acl_old = None
     if graph:
         if first_call_check:
-            acl_old = cf.get_node(graph,node['NODE_CHILD'])['ACL_CHILD']
-
+            old_node = cf.get_node(graph,node['NODE_CHILD'])
+            #Se non e' presente un nodo relativo al container, acl_old == None
+            if old_node != None:
+                acl_old = old_node['ACL_CHILD']
+        #Se il nodo non e' presente nel grafo, restituisce il grafo intatto
         graph = cf.remove_node(graph,node['NODE_CHILD'])
     graph = cf.add_node(graph,node,user,user)
 

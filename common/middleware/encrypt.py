@@ -29,10 +29,9 @@ class encrypt(WSGIContext):
             
             new_req = req
             new_req = Request.blank(req.path_info,None,req.headers,None)
-            new_req.method = 'HEAD'
+            new_req.method = 'GET'
             head_resp = new_req.get_response(self.app)
-            
-            old_cryptotoken = None #env.get('swift_crypto_fetch_old_crypto_token',None)
+            old_cryptotoken = env.get('swift_crypto_fetch_old_crypto_token',None)
             if old_cryptotoken != None:
                 old_token = cyf.decrypt_resource(old_cryptotoken,cyf.get_privatekey())
                 cryptokey = head_resp.headers.get('X-Container-Sysmeta-Crypto-Key',None)
@@ -53,19 +52,19 @@ class encrypt(WSGIContext):
                     time.sleep(3)
                     pid = os.fork()
                     if not pid:
+            
                         #sons_list.append(pid)
                     #else:
-                        #print " I AM THE SON! " + obj
+                        print " I AM THE SON! " + obj
                         # get file dalocntainer vecchio, cripto il file, faccio la put del file nel container (per ora lo stesso) e muoio
                         new_path_info = "/".join(["",version,account,container,obj])
                         #print "____________________________________________________"
                         #print new_path_info 
-                        #time.sleep(5)
                         new_req = Request.blank(new_path_info,None,req.headers,None)
                         new_req.method = 'GET'
                         get_resp = new_req.get_response(self.app)
-                        #print "CLEAR BODY " + obj
-                        #print get_resp.body
+                        print "CLEAR BODY " + obj
+                        print get_resp.body
                         cryptobody = cyf.encrypt_resource(get_resp.body,key)
                         #print "ENC BODY "+ obj
                         #print cryptobody
@@ -92,6 +91,7 @@ class encrypt(WSGIContext):
                     
 
             new_token = env.get('swift_crypto_fetch_new_token',None)
+            
             if new_token != None:
                 
                 cryptokey = cyf.encrypt_resource(key,new_token)

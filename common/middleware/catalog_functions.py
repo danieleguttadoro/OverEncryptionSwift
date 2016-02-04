@@ -222,12 +222,16 @@ def compose_graph(graph,userid):
     #    return graph
 
 def stringTOlist(list_string):
+    if list_string == None:
+        return []
     res = list_string.split(":")
     return res
     
 
-def listTOstring(list):
-    return ':'.join(sorted(list))
+def listTOstring(list_):
+    if list_ == None:
+        return ""
+    return ':'.join(sorted(list_))
 
 def send_message(command,userid,node):
                 

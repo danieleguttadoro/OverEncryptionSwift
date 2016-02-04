@@ -24,8 +24,6 @@ class decrypt(WSGIContext):
         if req.method == "GET" and username != 'admin' and username != None:               
             cryptotoken = req.environ.get('swift_crypto_fetch_crypto_token',None)       
             cryptokey = req.environ.get('swift_crypto_fetch_crypto_key',None)
-            print resp.headers
-            time.sleep(2)
             obj = req.split_path(1,4,True)[3]
             #TODO: Decrypt object e container con tutti i file ok. CONTROLLARE SOLO I NOMI
             #TODO: Le altre funzioni del crypto_functions.py sono da terminare (per adesso sono statiche)
@@ -35,7 +33,7 @@ class decrypt(WSGIContext):
                     token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
                     key = cyf.decrypt_resource(cryptokey,token)
                 else:
-                    key = cryptokey
+                    key = cryptokey 
                 resp.body = cyf.decrypt_resource(resp.body,key) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 #last_modified = cyf.decrypt_resource(resp.last_modified,key)
