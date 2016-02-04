@@ -22,7 +22,6 @@ class encrypt(WSGIContext):
         #print req.method
         
         username   = env.get('HTTP_X_USER_NAME',None)
-        time.sleep(3)
         #if is_success(resp.status_int):
         if req.method == "POST" and username != "admin" and username != None:
             
@@ -37,7 +36,6 @@ class encrypt(WSGIContext):
                 old_token = cyf.decrypt_resource(old_cryptotoken,cyf.get_privatekey())
                 print old_token
                 print len(old_token)
-                time.sleep(5)
                 cryptokey = head_resp.headers.get('X-Container-Sysmeta-Crypto-Key',None)
                 key = cyf.decrypt_resource(cryptokey,old_token)
                 #Da aggiungere last_modified e content length
@@ -53,7 +51,6 @@ class encrypt(WSGIContext):
                 
                 #sons_list = []
                 for obj in list_file: 
-                    time.sleep(3)
                     pid = os.fork()
                     if not pid:
             

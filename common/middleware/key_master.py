@@ -55,7 +55,6 @@ class key_master(WSGIContext):
         print "USERID   ----> ", userid
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if username != "ceilometer" and username != "admin" and username != None and req.method != 'PUT':
-            time.sleep(4)
             container = req.split_path(1,4,True)[2]
 	        #Get the catalog from metacontainer
             found_meta_container, json_catalog = catalog_functions.get_catalog(self.app,auth_token,req,userid,username)        

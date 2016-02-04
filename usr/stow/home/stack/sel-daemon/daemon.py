@@ -104,12 +104,12 @@ def delete_unnecessary_node(swift_conn,user,node,first_call_check):
     graph = get_graph(swift_conn,user)
     
     if first_call_check:
-        f_node = get_node(graph,node['NODE_CHILD']) 
+        f_node = cyf.get_node(graph,node['NODE_CHILD']) 
         if f_node == None:
             return None
     
-    graph = remove_node(graph,node['NODE_CHILD'])
-    json = compose_graph(graph,user)
+    graph = cf.remove_node(graph,node['NODE_CHILD'])
+    json = cf.compose_graph(graph,user)
     swift_conn.put_object(user,user,json)
         
     return node['ACL_CHILD']
