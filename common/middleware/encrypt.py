@@ -19,37 +19,18 @@ class encrypt(WSGIContext):
         print "----------------- ENCRYPT -----------------------"
         req = Request(env)
         #print req.method
-        """ 
-        #Create request to obtain list object
-        new_headers = req.headers
-        new_headers.method = "HEAD"
-        new_req = Request.blank(req.path_info,None,new_headers,None)
-        resp = new_req.get_response(self.app)
-        print "-----------------List OBJECT--------------------------"
-         
-        #list_obj = resp.body.split('\n')[:-1]
-        req.headers['X-Container-Sysmeta-crypto'] = "Danieleeeeeeeeeeeeeeeee"
-        print req.headers """
+        
         username   = env.get('HTTP_X_USER_NAME',None)
-        """
-        resp = req.get_response(self.app)
-        req.headers.method = "HEAD"
-        req2 = Request.blank(req.path_info,None,req.headers,None)
-        resp2 = req2.get_response(self.app)
-        print "RESP...................................."
-        print resp2.headers
-        time.sleep(6)
-        """
-        print req.headers
-        #time.sleep(6)
+        
         #if is_success(resp.status_int):
         if req.method == "POST" and username != "admin" and username != None:
             
             version, account, container, obj = req.split_path(1,4,True)
-            new_headers = req.headers
-            new_headers.method = 'HEAD'
-            new_req_head = Request.blank(req.path_info,None,new_headers,None)
-            head_resp = new_req_head.get_response(self.app)
+            
+            new_req = req
+            new_req = Request.blank(req.path_info,None,req.headers,None)
+            new_req.method = 'HEAD'
+            head_resp = new_req.get_response(self.app)
             
             old_cryptotoken = None #env.get('swift_crypto_fetch_old_crypto_token',None)
             if old_cryptotoken != None:
@@ -76,24 +57,23 @@ class encrypt(WSGIContext):
                     #else:
                         #print " I AM THE SON! " + obj
                         # get file dalocntainer vecchio, cripto il file, faccio la put del file nel container (per ora lo stesso) e muoio
-                        new_headers.method = 'GET'
                         new_path_info = "/".join(["",version,account,container,obj])
                         #print "____________________________________________________"
                         #print new_path_info 
                         #time.sleep(5)
-                        new_req_obj = Request.blank(new_path_info,None,new_headers,None)
-                        
-                        get_resp = new_req_obj.get_response(self.app)
+                        new_req = Request.blank(new_path_info,None,req.headers,None)
+                        new_req.method = = 'GET'
+                        get_resp = new_req.get_response(self.app)
                         #print "CLEAR BODY " + obj
                         #print get_resp.body
                         cryptobody = cyf.encrypt_resource(get_resp.body,key)
-                        print "ENC BODY "+ obj
-                        print cryptobody
-                        new_req_obj.body = cryptobody
-                        new_req_obj.method = 'PUT'
+                        #print "ENC BODY "+ obj
+                        #print cryptobody
+                        new_req.body = cryptobody
+                        new_req.method = 'PUT'
                         #print new_req_put.method
                         #print new_req_put.headers
-                        new_req_obj.get_response(self.app)
+                        put_resp = new_req.get_response(self.app)
                         
                         proc = psutil.Process(os.getpid())
                         #sons_list.remove(os.getpid()) #il figlio qui non vede la stessa lista del padre, infatti, e' sollevato un errore sulla remove 'pid non trovato'
@@ -116,10 +96,11 @@ class encrypt(WSGIContext):
                 
                 cryptokey = cyf.encrypt_resource(key,new_token)
                 
+                new_headers = req.headers
                 new_headers['X-Container-Sysmeta-Crypto-Key'] = cryptokey
-                new_headers.method = "POST"
-                new_req_post = Request.blank(req.path_info,None,new_headers,None)
-                new_req_post.get_response(self.app)
+                new_req = Request.blank(req.path_info,None,new_headers,None)
+                new_req.method = 'POST'
+                post_resp = new_req.get_response(self.app)
                     
                         
         return self.app(env, start_response)       

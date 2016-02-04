@@ -20,53 +20,37 @@ pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
 EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
 DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
 
-def get_key():
-    return '01234567890123456789012345678901'
-
-#def get_cryptokey():
-#    print "Retrieve_the_key"
-#    key = '01234567890123456789012345678901' # 32 char length
-#    return key
-
 def get_privatekey():
     return '01234567890123456789012345678901'
 
 def gen_token():
-    return "token"
+    
+    # generate a random secret token
+    return os.urandom(BLOCK_SIZE) 
 
 def gen_key():
-    return '01234567890123456789012345678901'
+    
+    # generate a random secret key
+    return os.urandom(BLOCK_SIZE)
 
 def decrypt_resource (obj, secret):
     
-    # generate a random secret key
-    # secret = os.urandom(BLOCK_SIZE)
-
-    # create a cipher object using the random secret
+    # create a cipher object using the secret
     cipher = AES.new(secret)
 
     # decode the encoded string
     decoded = DecodeAES(cipher, obj)
-    print 'Decrypted string:', decoded 
+    #print 'Decrypted string:', decoded 
     
     return decoded
 
 def encrypt_resource(obj,secret):
     
-    # create a cipher object using the random secret
+    # create a cipher object using the secret
     cipher = AES.new(secret)
     
     # encode a string
     encoded = EncodeAES(cipher, obj)
-    print 'Encrypted string:', encoded
+    #print 'Encrypted string:', encoded
 
     return encoded
-
-def encrypt_response(resp,key):
-
-   #resp.content_length = encrypt_resource(os.urandom(BLOCKSIZE),key))
-   #resp.content_type = encrypt_resource(str(resp.content_type),key) 
-   #resp.last_modified = encrypt_resource(str(resp.last_modified),key) 
-   resp.body = encrypt_resource(resp.body,key) 
-
-   return resp
