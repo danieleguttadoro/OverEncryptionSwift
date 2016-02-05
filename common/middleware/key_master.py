@@ -27,7 +27,7 @@ from keystoneclient.auth import identity
 def to_do_overencryption():
     # for now, random function to establish if we must do an overencryption. Later, we scan BEL-graph.
     #return random.randint(0,1)
-    return 10
+    return 1 
 
 def create_head_req(req):
     version, account, container, obj = req.split_path(1,4,True)
@@ -94,13 +94,20 @@ class key_master(WSGIContext):
                         if node != None:
                             catalog_functions.send_message("REMOVE",userid,node)
                             cryptotoken = node['CRYPTOTOKEN']
+                            #print ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+                            #print cryptotoken
                             token = cyf.decrypt_resource(cryptotoken,cyf.get_privatekey())
-                            
+                            #print ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+                            #print token
                             new_req = create_head_req(req)
                             head_resp = new_req.get_response(self.app)
                             cryptokey = head_resp.headers.get('x-container-sysmeta-crypto-key',None)
+                            #print ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+                            #print cryptokey
                             key = cyf.decrypt_resource(cryptokey,token)
-
+                            #print ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+                            #print key
+                            #time.sleep(8)
                             new_req.headers['x-container-sysmeta-crypto-key'] = key
                             new_req.method = 'POST'
                             new_req.get_response(self.app)
