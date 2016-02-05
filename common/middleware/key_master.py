@@ -27,7 +27,7 @@ from keystoneclient.auth import identity
 def to_do_overencryption():
     # for now, random function to establish if we must do an overencryption. Later, we scan BEL-graph.
     #return random.randint(0,1)
-    return 1 
+    return 0
 
 def create_head_req(req):
     version, account, container, obj = req.split_path(1,4,True)
