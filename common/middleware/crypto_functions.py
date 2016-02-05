@@ -5,60 +5,84 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 import codecs
-# the block size for the cipher object; must be 16, 24, or 32 for AES
-BLOCK_SIZE = 32
+import time
 
-# the character used for padding--with a block cipher such as AES, the value
-# you encrypt must be a multiple of BLOCK_SIZE in length.  This character is
-# used to ensure that your value is always a multiple of BLOCK_SIZE
-PADDING = '{'
-
-# one-liner to sufficiently pad the text to be encrypted
-pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
-
-# one-liners to encrypt/encode and decrypt/decode a string
-# encrypt with AES, encode with base64
-EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
-DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
+#the block size for the cipher object; must be 16, 24, or 32 for AES
+BLOCK_SIZE = 16
 
 def get_privatekey():
     return '01234567890123456789012345678901'
 
 def gen_token():
-     
-    # generate a random secret token
-    random_byte = os.urandom(BLOCK_SIZE/2) 
-    token_ascii = binascii.hexlify(random_byte)
-    print len(token_ascii)
-    return token_ascii
+
+    random_bytes = os.urandom(BLOCK_SIZE)
+    secret = base64.b64encode(random_bytes).decode('utf-8')
+    print "TOKEN"
+    print secret
+    print len(secret)
+    time.sleep(3)
+    return secret     
     
 def gen_key():
     
-    # generate a random secret token
-    random_byte = os.urandom(BLOCK_SIZE/2) 
-    token_ascii = binascii.hexlify(random_byte)
-    print len(token_ascii)
-    return token_ascii
-
+    random_bytes = os.urandom(BLOCK_SIZE)
+    secret = base64.b64encode(random_bytes).decode('utf-8')
+    print "KEY"
+    print secret
+    print len(secret)
+    time.sleep(3)
+    return secret
 
 def decrypt_resource (obj, secret):
     
-    # create a cipher object using the secret
-    cipher = AES.new(secret)
-
-    # decode the encoded string
-    decoded = DecodeAES(cipher, obj)
-    #print 'Decrypted string:', decoded 
+    unpad = lambda s: s[: -ord(s[len(s) - 1:])]
     
-    return decoded
+    obj = base64.b64decode(obj)
+
+    iv = obj[:BLOCK_SIZE]
+    cipher = AES.new(secret, AES.MODE_CBC, iv)
+    
+    result = unpad(cipher.decrypt(obj[BLOCK_SIZE:])) 
+    
+    return result
 
 def encrypt_resource(obj,secret):
-    
-    # create a cipher object using the secret
-    cipher = AES.new(secret)
-    
-    # encode a string
-    encoded = EncodeAES(cipher, obj)
-    #print 'Encrypted string:', encoded
 
+    pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
+    pad_obj = pad(obj)
+
+    iv = Random.new().read(AES.block_size)
+    cipher = AES.new(secret, AES.MODE_CBC, iv)
+    result = base64.b64encode(iv + cipher.encrypt(pad_obj)) 
+
+    return result
+
+
+def encrypt_msg(info, secret, path=False):
+    """
+    Encrypt a message using AES
+    """
+    # padding : guarantee that the value is always MULTIPLE  of BLOCK_SIZE
+    PADDING = '{'
+    pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
+    encodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
+    cipher = AES.new(secret)
+    encoded = encodeAES(cipher, info)
+    if path:
+        # Encoding base32 to avoid paths (names containing slashes /)
+        encoded = base64.b32encode(encoded)
     return encoded
+
+
+def decrypt_msg(encryptedString, secret, path=False):
+    """
+    Decrypt a message using AES
+    """
+    PADDING = '{'
+    if path:
+        encryptedString = base64.b32decode(encryptedString)
+    decodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
+    key = secret
+    cipher = AES.new(key)
+    decoded = decodeAES(cipher, encryptedString)
+    return decoded
