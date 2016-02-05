@@ -34,18 +34,19 @@ class encrypt(WSGIContext):
                 new_req = req
                 new_req = Request.blank(req.path_info,None,req.headers,None)
                 new_req.method = 'GET'
-                head_resp = new_req.get_response(self.app)
+                get_resp = new_req.get_response(self.app)
+                
+                cryptokey = key = get_resp.headers.get('X-Container-Sysmeta-Crypto-Key',None)
 
                 if old_cryptotoken != None:
                     old_token = cyf.decrypt_resource(old_cryptotoken,cyf.get_privatekey())
                     print old_token
                     print len(old_token)
-                    cryptokey = head_resp.headers.get('X-Container-Sysmeta-Crypto-Key',None)
                     key = cyf.decrypt_resource(cryptokey,old_token)
                     #Da aggiungere last_modified e content length
-                else: 
+                elif cryptokey == None: 
                     key = cyf.gen_key()
-                    list_file = head_resp.body.split('\n')[:-1]
+                    list_file = get_resp.body.split('\n')[:-1]
                 
                     #PUT di un nuovo container con il nome criptato
                     #new_headers.method = "PUT"
@@ -94,7 +95,6 @@ class encrypt(WSGIContext):
                         #lista vuota
                         #cancella il vecchio container e muori
                     
-
                 cryptokey = cyf.encrypt_resource(key,new_token)
                 
                 new_headers = req.headers
