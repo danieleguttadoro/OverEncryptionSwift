@@ -1,96 +1,28 @@
-#!/uisr/bin/env python
-
-import json, time
+import json
 import base64
 from itertools import *
-from swift.common.swob import Request
-import pika
-from swift.proxy.controllers.base import Controller
+from crypto_functions import *
+from connection import *
+from swiftclient import client
 
-from keystoneclient.v2_0 import client
-from keystoneclient.exceptions import Unauthorized
 
-def conn_keystone(username,userid,auth_token):
+meta_conn_sel = client.Connection(user=USER, key=KEY, tenant_name=META_TENANT_SEL,
+                              authurl=AUTHURL, auth_version='2.0')
+
+def get_catalog_sel(userID):
+    """
+    Get the catalog from the meta-container
+    """
+    CatContainer = '.Cat_usr%s' % userID
+    CatSource = '$cat_graph%s.json' % userID
     try:
-        keystone = client.Client(username=username,token = auth_token,tenant_name=userid,auth_url="http://127.0.0.1:5000/v2.0")
-        return keystone.tenant_id 
-    except Unauthorized:
-        return None
-		
-#modified on server
-def get_catalog(app,auth_token,req,user_id,username):
-    #COMMENT: Obtaining version and account of the Request, to do another Request and obtain the graph of tokens
-    #version, account, container, obj = req.split_path(1,4,True)
-    account = conn_keystone(username,user_id,auth_token)
-    if account == None:
-    	return None, None
-    path_catalog = "/".join(["", "v1" ,"AUTH_" +  account , user_id, user_id])
-    req_catalog = Request.blank(path_catalog,None,req.headers,None)
-    res_catalog = req_catalog.get_response(app)
-    if res_catalog.status =='404 Not Found':
-        return 'Found', None
-    return 'Found', res_catalog.body
-    
-def create_node(node_child,acl_child,token,ownertoken):
-    Entry = {}
-    
-    if acl_child != None:
-        Entry["NODE_CHILD"] = node_child
-        Entry["ACL_CHILD"] = acl_child
-        #TokenDecEscape = r"%s" % upd_details[7].decode('string-escape')
-        Entry["CRYPTOTOKEN"] = token# TokenDecEscape
-        Entry["OWNERTOKEN"] = ownertoken
-        #Entry["VERSIONTOKEN"] = '0'        # Left for future development
-        #Entry["TYPE"] = 'USER'
-    #print "Entry"
-    #print Entry   
-    return Entry
-
-#added in server
-def add_node(graph,Entry,parent,userid):
-    # New node
-    Parent = [elem for elem in graph if elem.has_key('NODE') and elem['NODE'] == parent ]
-    if len(Parent) == 0:
-        # No token exiting from current node exist, also the parent node must be created
-        CatGrEntry = {}
-        CatGrEntry["NODE"] = parent
-        CatGrEntry["ACL"] = parent
-        CatDtEntryList = []
-        CatDtEntryList.append(Entry)
-        CatGrEntry["TOKEN"] = CatDtEntryList
-        graph=[CatGrEntry]
-    else:
-	    # The source node already exists. Only the destination+token must be appended
-        for elem in [elem for elem in graph if elem['NODE'] == parent]:
-            Parent[0]['TOKEN'].append(Entry)
-    
-    return graph
-
-#Not used?
-def get_graph(json_data_catalog):
-    """
-    Read the catalog (simple version, without further browse) and build the graph.
-    Args:
-        json_data_catalog: the catalog .json
-    Returns:
-        CatGraph:
-    """
-    json_data = json.loads(json_data_catalog.decode('latin-1'), strict=False)
-    CatGraph = []
-
-    def foo(x):
-        for child in x['TOKEN']:
-	        pass
-            #child['NODE'] = x['NODE']
-            #child['ACL'] = x['ACL']
-        return x['TOKEN']
-
-    CatGraph = map(foo, json_data['NODES'])
-    CatGraph = list(chain.from_iterable(CatGraph))
-    return CatGraph
+        hdrs, json_data_catalog = meta_conn_sel.get_object(CatContainer, CatSource)
+    except:
+        json_data_catalog = '{err}'
+    return json_data_catalog
 
 
-def load_graph(json_data_catalog):
+def load_graph_sel(usrID):
     """
     Load the graph from the catalog.
     This function differs from 'get_graph' because there are no information
@@ -100,30 +32,35 @@ def load_graph(json_data_catalog):
     Returns:
         The graph as a list of nodes (a list of dictionaries)
     """
-    json_cat = json.loads(json_data_catalog)
+    catalog = get_catalog_sel(usrID)
+    json_cat = json.loads(catalog)
     return json_cat['NODES']
 
 
-def get_node(graph, destination):
+def get_DerivPath(userID, graph, destination):
     """
     Args:
-        graph: the graph seen by the user (obtained by load_graph)
-        container
+        graph: the graph seen by the user
+        destination: the ACL of the destination node
     Returns:
         the path from the root to the destination node
     """
-	
+    source = userID
+    pathInv = []
+    # Build a path bottom-up
     currDestination = destination
-    for elem in graph:
-       if elem.has_key('TOKEN'):
-         entry = elem['TOKEN']
-         for ent in entry:	
-          if currDestination == ent['NODE_CHILD']:
-            if tokenIsValid(ent['CRYPTOTOKEN'], ent['OWNERTOKEN']):
-               return ent
-    return None
+    currSource = None
+    while currSource != source:
+        for entry in [elem for elem in graph if elem['ACL_CHILD'] == currDestination]:
+            currSource = entry['ACL']
+            currDestination = entry['ACL']
+            if tokenIsValid(entry['CRYPTOTOKEN'], entry['OWNERTOKEN']):
+                pathInv.append(entry)
 
-#NoT USED
+    # Invert the path built in the previous step to make it browsable
+    return pathInv[::-1]
+
+
 def majorChild(graph, new_node_Acl):
     """
     Get the parent node of the new node (it may be a child node itself)
@@ -147,18 +84,7 @@ def majorChild(graph, new_node_Acl):
                 majChlACL = node['ACL_CHILD']
     return majChl, majChlACL
 
-def remove_node(graph,container):
-    currContainer = container
-    for elem in graph:
-        if elem.has_key('TOKEN'):
-            entry = elem['TOKEN']
-            for ent in entry:
-                if currContainer == ent['NODE_CHILD']:
-                    entry.remove(ent)
 
-    return graph
-
-#NOT USED
 def browsePath(userID, MyPath):
     """
     Browse a path and derive the token.
@@ -169,21 +95,16 @@ def browsePath(userID, MyPath):
     k = None
     for step in MyPath:
         if not k:
-            # First arch (or single arch
-            #PROVA
-            k = step['CRYPTOTOKEN']	
-            #k = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
-            #sender=step['OWNERTOKEN'], receiver=userID)
+            # First arch (or single arch)
+            k = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
+                              sender=step['OWNERTOKEN'], receiver=userID)
             k_prec = k
         else:
-            token_ciph = step['CRYPTOTOKEN']
-            #token_ciph = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
-            # sender=step['OWNERTOKEN'], receiver=userIDi
-            #k = decrypt_msg(base64.b64decode(token_ciph), k_prec)
-            k = step['CRYPTOTOKEN']
+            token_ciph = decrypt_token(secret=base64.b64decode('%s' % step['CRYPTOTOKEN']),
+                                       sender=step['OWNERTOKEN'], receiver=userID)
+            k = decrypt_msg(base64.b64decode(token_ciph), k_prec)
             k_prec = k
-            lastOwnerToken = step['OWNERTOKEN']
-
+        lastOwnerToken = step['OWNERTOKEN']
     return k, lastOwnerToken
 
 
@@ -195,68 +116,13 @@ def tokenIsValid(token, owner):
     """
     return True
 
-def get_cryptotoken(graph,container):
-    myPath = get_node(graph, container)
-    if myPath == None:
-        return None
-    
-    return myPath['CRYPTOTOKEN']
-
-def compose_graph(graph,userid):
-     Entry = {}
-     Entry["TYPE_ENTITY"] = "USER"
-     Entry["ID_ENTITITY"] = userid
-     Entry["NODES"] = graph
-     return json.dumps(Entry, indent=4, sort_keys=True)
- 
-
-    #def overencrypt(user,catalog,container_list,acl_list):overencrypt non sappiamo se container list viene passato singolarmente o come ua lista d container
-    #    global graph
-    #    graph = load_graph(catalog)
-    #    new_acl_list = ':'.join(sorted(acl_list))
-    #    for elem in container_list:
-    #	    cryptotoken = new_cryptotoken(userid)
-    #	    graph = remove_node(graph,elem,userid)
-    #	    node = create_node(elem,new_acl_list,cryptotoken,userid)
-    #	    graph = add_node(graph,node,userid,userid)
-    #    return graph
-
-def stringTOlist(list_string):
-    if list_string == None:
-        return []
-    res = list_string.split(":")
-    return res
-    
-
-def listTOstring(list_):
-    if list_ == None:
-        return ""
-    return ':'.join(sorted(list_))
-
-def send_message(command,userid,node):
-                
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
-    channel.queue_declare(queue='daemon11', durable=True)
-       
-    channel.confirm_delivery()
- 
-    print " *********** Send Message *************"
-    node_s = json.dumps(node, indent=4, sort_keys=True)
-    msg = command +"#"+ userid + "#" + node_s
-    try:  
-        channel.basic_publish(exchange='',
-                              routing_key='daemon11',
-                              body=msg,
-                              properties=pika.BasicProperties(
-                              delivery_mode = 2, # make message persistent
-                              ))
-        
-        print(" [x] Sent [%s]" % msg)
-    except pika.exceptions.ConnectionClosed as exc:
-        print('Error. Connection closed, and the message was never delivered.')
-
-    connection.close()
-
-    return
-
+def get_token_sel(userID, acl_list):
+    """
+    """
+    literal_Acl_share_sorted = ':'.join(sorted(acl_list))
+    myPath = []
+    myPath = get_DerivPath(userID, get_graph(get_catalog_sel(userID)), literal_Acl_share_sorted)
+    if len(myPath) == 0:
+        return None, None
+    token, lastOwnerToken = browsePath(userID, myPath)
+    return token

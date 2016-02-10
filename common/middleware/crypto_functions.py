@@ -1,60 +1,66 @@
+#!/usr/bin/env python
+
 import os
-import binascii
 import base64
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
-import codecs
-import time
 
-#the block size for the cipher object; must be 16, 24, or 32 for AES
+
 BLOCK_SIZE = 16
 
-def get_privatekey():
-    return '01234567890123456789012345678901'
-
-def gen_token():
-
+def generate_container_key():
+    """
+    Generate a random AES key for the container
+    """
     random_bytes = os.urandom(BLOCK_SIZE)
     secret = base64.b64encode(random_bytes).decode('utf-8')
-    print "TOKEN"
-    print secret
-    print len(secret)
-    time.sleep(3)
-    return secret     
-    
-def gen_key():
-    
-    random_bytes = os.urandom(BLOCK_SIZE)
-    secret = base64.b64encode(random_bytes).decode('utf-8')
-    print "KEY"
-    print secret
-    print len(secret)
-    time.sleep(3)
     return secret
 
-def decrypt_resource (obj, secret):
-    
-    unpad = lambda s: s[: -ord(s[len(s) - 1:])]
-    
-    obj = base64.b64decode(obj)
 
-    iv = obj[:BLOCK_SIZE]
-    cipher = AES.new(secret, AES.MODE_CBC, iv)
-    
-    result = unpad(cipher.decrypt(obj[BLOCK_SIZE:])) 
-    
+def encrypt_token(secret, sender, receiver):
+    """
+    Cipher the token for the catalog using either AES or RSA encryption
+    """
+    # sender = self.userID
+    if sender == receiver:
+        # AES encryption using the master key
+        master_key = get_masterKey(sender)
+        pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
+        secret = pad(secret)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(master_key, AES.MODE_CBC, iv)
+        result = base64.b64encode(iv + cipher.encrypt(secret))
+    else:
+        # RSA encryption using the sender's private key and the receiver's public one
+        sender_priv_key = RSA.importKey(get_privateKey(sender))
+        receiver_pub_key = RSA.importKey(get_publicKey(receiver))
+        ciph1 = sender_priv_key.decrypt(secret)
+        result = receiver_pub_key.encrypt(ciph1, 'x')[0]
     return result
 
-def encrypt_resource(obj,secret):
 
-    pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
-    pad_obj = pad(obj)
-
-    iv = Random.new().read(AES.block_size)
-    cipher = AES.new(secret, AES.MODE_CBC, iv)
-    result = base64.b64encode(iv + cipher.encrypt(pad_obj)) 
-
+def decrypt_token(secret, sender, receiver):
+    """
+    Decipher the token from the catalog.
+    Returns:
+        The plain token
+    """
+    # receiver = self.userID
+    if sender == receiver:
+        # AES decipher
+        master_key = get_masterKey(sender)
+        unpad = lambda s: s[: -ord(s[len(s) - 1:])]
+        secret = base64.b64decode(secret)
+        iv = secret[:BLOCK_SIZE]
+        cipher = AES.new(master_key, AES.MODE_CBC, iv)
+        result = unpad(cipher.decrypt(secret[BLOCK_SIZE:]))
+    else:
+        # RSA decipher
+        sender_pub_key = RSA.importKey(get_publicKey(sender))
+        receiver_priv_key = RSA.importKey(get_privateKey(receiver))
+        deciph1 = receiver_priv_key.decrypt(secret)
+        result = sender_pub_key.encrypt(deciph1, 'x')[0]
     return result
 
 
@@ -86,3 +92,44 @@ def decrypt_msg(encryptedString, secret, path=False):
     cipher = AES.new(key)
     decoded = decodeAES(cipher, encryptedString)
     return decoded
+
+
+def get_masterKey(userID):       # TODO: deprecate it
+    """
+    Get the master key from local file
+    Returns:
+        The master key
+    """
+    mk_filename = "obj_world/mk_%s.key" % userID
+    with open(mk_filename, 'r') as f:
+        master_key = f.read()
+    return base64.b64decode(master_key)
+
+
+def get_publicKey(userID):    # TODO: from barbican
+    """
+    Get the user's public key
+    Returns:
+        Public key from barbican
+    """
+    filename = 'obj_world/pub_%s.key' % userID
+    with open(filename, 'r') as f:
+        pubkey = f.read()
+    return pubkey
+
+
+def get_privateKey(userID):  # TODO: from barbican
+    """
+    Get the plain user's private key from barbican
+    Returns:
+        The plain private key
+    """
+    master_key = get_masterKey(userID)
+    filename = 'obj_world/pvt_%s.key' % userID
+    with open(filename, 'r') as f:
+        private_key = f.read()
+    unpad = lambda s: s[:-ord(s[len(s) - 1:])]
+    private_key = base64.b64decode(private_key)
+    iv = private_key[:BLOCK_SIZE]
+    cipher = AES.new(master_key, AES.MODE_CBC, iv)
+    return unpad(cipher.decrypt(private_key[BLOCK_SIZE:]))

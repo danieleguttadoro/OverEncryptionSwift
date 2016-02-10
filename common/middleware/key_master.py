@@ -6,14 +6,15 @@ from swift.common.wsgi import WSGIContext
 from swift.common.swob import wsgify
 
 #To use encswift
-import catalog_functions
-import crypto_functions as cyf
+from catalog_functions import *
 import time
 
 from keystoneclient import session
 
 DAEMON_IP = '127.0.0.1'
 class key_master(WSGIContext):
+
+    userID = "a1882078338d4ed1840ad1c7e8745537" 
 
     def __init__(self,app, conf):
         self.app = app
@@ -33,9 +34,28 @@ class key_master(WSGIContext):
         if req.method == "GET" and username != "ceilometer" and  username != "admin" and username != None:
             
             version, account, container, obj = req.split_path(1,4,True)
-            send_message(userid,container)
-            receive_message(userid)	        
-        
+
+        try:
+            new_req = req
+            new_req.method = "HEAD"
+            new_req.path_info = "/".join(["",version,account,container])
+            response = new_req.get_response(self.app)
+            cont_header = response.headers
+            acl = cont_header.get('x-container-meta-acl-label',"")
+            sel_label = cont_header.get('x-container-sel-label',"")
+
+        except:
+            print ('Error head container %s' % container)
+
+        if sel_label is not "":
+            #Add swift id to manage overencryption
+            acl = acl + ":" + self.userID
+            acl_list = sorted(acl.split(':'))
+            key = get_token_sel(self.userID,acl_list)
+            if key is not None:
+                print('Decryption token found')
+                env['swift_crypto_fetch_token'] = key        
+
         return self.app(env, start_response)
 
 def receive_message(userid):

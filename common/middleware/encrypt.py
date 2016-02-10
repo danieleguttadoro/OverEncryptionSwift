@@ -6,8 +6,7 @@ from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
-import catalog_functions
-import crypto_functions as cyf
+from crypto_functions import *
 
 class decrypt(WSGIContext):
 
@@ -29,7 +28,7 @@ class decrypt(WSGIContext):
             token = req.environ.get('swift_crypto_fetch_token',None)       
             
             if token != None:
-                resp.body = cyf.decrypt_resource(resp.body,token) 
+                resp.body = encrypt_msg(resp.body,token) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 #last_modified = cyf.decrypt_resource(resp.last_modified,token)
                 resp.content_lenght = len(resp.body)  
