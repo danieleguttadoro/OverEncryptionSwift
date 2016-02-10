@@ -31,11 +31,11 @@ class key_master(WSGIContext):
         print "USERID   ----> ", userid
         
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
-        if req.method == "GET" and username != "ceilometer" and  username != "admin" and username != None:
+        if req.method == "GET" and username != "ceilometer" and username != "encadmin" and username != "admin" and username != None:
             
             version, account, container, obj = req.split_path(1,4,True)
 
-        try:
+        
             new_req = req
             new_req.method = "HEAD"
             new_req.path_info = "/".join(["",version,account,container])
@@ -44,17 +44,14 @@ class key_master(WSGIContext):
             acl = cont_header.get('x-container-meta-acl-label',"")
             sel_label = cont_header.get('x-container-sel-label',"")
 
-        except:
-            print ('Error head container %s' % container)
-
-        if sel_label is not "":
-            #Add swift id to manage overencryption
-            acl = acl + ":" + self.userID
-            acl_list = sorted(acl.split(':'))
-            key = get_token_sel(self.userID,acl_list)
-            if key is not None:
-                print('Decryption token found')
-                env['swift_crypto_fetch_token'] = key        
+            if sel_label is not "":
+                #Add swift id to manage overencryption
+                acl = acl + ":" + self.userID
+                acl_list = sorted(acl.split(':'))
+                key = get_token_sel(self.userID,acl_list)
+                if key is not None:
+                    print('Decryption token found')
+                    env['swift_crypto_fetch_token'] = key        
 
         return self.app(env, start_response)
 
