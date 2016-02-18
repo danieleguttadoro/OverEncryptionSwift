@@ -35,23 +35,27 @@ class key_master(WSGIContext):
             
             version, account, container, obj = req.split_path(1,4,True)
 
-        
-            new_req = req
-            new_req.method = "HEAD"
-            new_req.path_info = "/".join(["",version,account,container])
-            response = new_req.get_response(self.app)
-            cont_header = response.headers
-            acl = cont_header.get('x-container-meta-acl-label',"")
-            sel_label = cont_header.get('x-container-sel-label',"")
+            if obj != None:
+                new_req = Request.blank(req.path_info,None,req.headers,None)
+                new_req.method = "HEAD"
+                new_req.path_info = "/".join(["",version,account,container])
+                response = new_req.get_response(self.app)
+                cont_header = response.headers
+                sel_id_key_container = cont_header.get('x-container-meta-sel-label-id',"")
 
-            if sel_label is not "":
-                #Add swift id to manage overencryption
-                acl = acl + ":" + self.userID
-                acl_list = sorted(acl.split(':'))
-                key = get_token_sel(self.userID,acl_list)
-                if key is not None:
-                    print('Decryption token found')
-                    env['swift_crypto_fetch_token'] = key        
+                if sel_id_key_container is not "":
+                    print "3"
+                    time.sleep(2)
+                    resp_obj = req.get_response(self.app)
+                    sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-label-id',"")
+                    print "kekekekekekekekekekekekekek"
+                    print sel_id_key_object
+                    time.sleep(3)
+                    if sel_id_key_object != sel_id_key_container:
+                        key = get_token_sel(self.userID, "sjsjsj")
+                        if key is not None:
+                            print('Decryption token found')
+                            env['swift_crypto_fetch_token'] = key 
 
         return self.app(env, start_response)
 

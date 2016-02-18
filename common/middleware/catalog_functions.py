@@ -119,7 +119,9 @@ def tokenIsValid(token, owner):
 def get_token_sel(userID, acl_list):
     """
     """
-    literal_Acl_share_sorted = ':'.join(sorted(acl_list))
+    return "0123456789012345"
+
+    eiteral_Acl_share_sorted = ':'.join(sorted(acl_list))
     myPath = []
     myPath = get_DerivPath(userID, get_graph(get_catalog_sel(userID)), literal_Acl_share_sorted)
     if len(myPath) == 0:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os
+import os, time
 import base64
 from Crypto import Random
 from Crypto.Cipher import AES
@@ -67,7 +67,6 @@ def decrypt_token(secret, sender, receiver):
 def encrypt_msg(info, secret, path=False):
     """
     Encrypt a message using AES
-    """
     # padding : guarantee that the value is always MULTIPLE  of BLOCK_SIZE
     PADDING = '{'
     pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING

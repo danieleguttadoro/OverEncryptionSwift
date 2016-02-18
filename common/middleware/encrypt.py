@@ -8,7 +8,7 @@ from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
 from crypto_functions import *
 
-class decrypt(WSGIContext):
+class encrypt(WSGIContext):
 
    def __init__(self,app, conf):
         self.app = app
@@ -18,21 +18,20 @@ class decrypt(WSGIContext):
    def __call__(self, req):
         
         print "----------------- ENCRYPT -----------------------"
-        
         resp = req.get_response(self.app)
+        print "aspettando....."
         env = req.environ
         username = env.get('HTTP_X_USER_NAME',None)
-        
-        if req.method == "GET" and username != 'admin' and username != None:               
+        if req.method == "GET" and username!= 'ceilometer' and username != 'admin' and username != 'encadmin' and username != None:               
             
             token = req.environ.get('swift_crypto_fetch_token',None)       
-            
+            print token
+            print "jdkhfajguyvg,sjgfsiagbavf,ncaygfnycvgfcy v  h b!!!!!"
             if token != None:
                 resp.body = encrypt_msg(resp.body,token) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 #last_modified = cyf.decrypt_resource(resp.last_modified,token)
                 resp.content_lenght = len(resp.body)  
-        
         return resp 
          
 
@@ -41,5 +40,5 @@ def filter_factory(global_conf, **local_conf):
     conf.update(local_conf)
 
     def except_filter(app):
-        return decrypt(app,conf)
+        return encrypt(app,conf)
     return except_filter
