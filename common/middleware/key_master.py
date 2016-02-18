@@ -35,7 +35,7 @@ class key_master(WSGIContext):
             
             version, account, container, obj = req.split_path(1,4,True)
 
-            if obj != None:
+            """if obj != None:
                 new_req = Request.blank(req.path_info,None,req.headers,None)
                 new_req.method = "HEAD"
                 new_req.path_info = "/".join(["",version,account,container])
@@ -50,12 +50,13 @@ class key_master(WSGIContext):
                     sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-label-id',"")
                     print "kekekekekekekekekekekekekek"
                     print sel_id_key_object
+                    print resp_obj.body
                     time.sleep(3)
                     if sel_id_key_object != sel_id_key_container:
                         key = get_token_sel(self.userID, "sjsjsj")
                         if key is not None:
-                            print('Decryption token found')
-                            env['swift_crypto_fetch_token'] = key 
+                            print('Decryption token found')"""
+            env['swift_crypto_fetch_token'] = "0123456789012345"
 
         return self.app(env, start_response)
 

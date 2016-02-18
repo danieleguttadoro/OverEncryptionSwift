@@ -119,7 +119,7 @@ def tokenIsValid(token, owner):
 def get_token_sel(userID, acl_list):
     """
     """
-    return "0123456789012345"
+    return "01234567890123456789012345678901"
 
     eiteral_Acl_share_sorted = ':'.join(sorted(acl_list))
     myPath = []
