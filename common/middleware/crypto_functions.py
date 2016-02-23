@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time
+import os
 import base64
 from Crypto import Random
 from Crypto.Cipher import AES
@@ -8,7 +8,7 @@ from Crypto.PublicKey import RSA
 
 
 BLOCK_SIZE = 16
-BLOCK_SZ = 32
+
 def generate_container_key():
     """
     Generate a random AES key for the container
@@ -63,6 +63,7 @@ def decrypt_token(secret, sender, receiver):
         result = sender_pub_key.encrypt(deciph1, 'x')[0]
     return result
 
+
 def encrypt_msg(info, secret, path=False):
     return "Encrypted String_" + info
     """ 
@@ -104,7 +105,6 @@ def decrypt_msg(encryptedString, secret, path=False):
     iv = encryptedString[:BLOCK_SIZE]
     cipher = AES.new(secret, AES.MODE_CBC, iv)
     result = unpad(cipher.decrypt(encryptedString[BLOCK_SIZE:]))
-
     return result
 
 def get_masterKey(userID):       # TODO: deprecate it
