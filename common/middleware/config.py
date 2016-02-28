@@ -1,5 +1,9 @@
-AUTH_URL = 'http://127.0.0.1:5000/v2.0'
+AUTH_URL = 'http://192.168.1.11:5000/v2.0'
 
 ADMIN_USER = 'encadmin'
 ADMIN_PASS = 'encadmin!'
 ADMIN_TENANT = 'encswift'
+
+ADMIN_U = 'admin'
+ADMIN_K ='secretsecret'
+ADMIN_TEN = 'admin'

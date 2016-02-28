@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 sudo cp /home/stack/swift/common/middleware/encrypt.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/common/middleware/config.py /opt/stack/swift/swift/common/middleware
+sudo cp /home/stack/swift/common/middleware/create_user.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/common/middleware/key_master.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/common/middleware/catalogue.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/usr/stow/home/vagrant/.vimrc /home/vagrant/
 sudo cp /home/stack/swift/common/middleware/crypto_functions.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/common/middleware/connection.py /opt/stack/swift/swift/common/middleware
+sudo mkdir /opt/stack/swift/swift/common/middleware/simplestack
+sudo cp /home/stack/swift/common/middleware/keystone.py /opt/stack/swift/swift/common/middleware/
+sudo cp /home/stack/swift/common/middleware/escudo_user_properties.py /opt/stack/swift/swift/common/middleware/
+sudo cp /home/stack/swift/common/middleware/config.py /opt/stack/swift/swift/common/middleware/
 sudo mkdir -m 755 -p /opt/stack/sel-daemon/
 #sudo mkdir -m 755 -p /opt/stack/sel-daemon/config
 #sudo mkdir -m 755 -p /opt/stack/sel-daemon/log

@@ -9,6 +9,8 @@ from swift.common.swob import wsgify
 from catalogue import *
 import time
 from config import *
+from connection import *
+from create_user import CreateUser
 from keystoneclient import session
 from keystoneclient.v2_0 import client as kc
 
@@ -29,6 +31,8 @@ class key_master(WSGIContext):
         self.app = app
         self.conf = conf
         self.name = "swift"
+        #createUser(SWIFT_USER,SWIFT_PASS,TENANT_NAME,META_TENANT,"Member",AUTH_URL).start()
+        self.userID = self.getUserID()
 
     def __call__(self, env, start_response):
         
@@ -60,7 +64,7 @@ class key_master(WSGIContext):
                     if sel_id_key_object != sel_id_key_container:
                         print self.getUserID()
                         time.sleep(4)
-                        key = get_cat_obj(self.getUserID(), sel_id_key_container)
+                        key = get_cat_obj(self.userID(), sel_id_key_container)
                         if key is not None:
                             print('Decryption token found')
 
