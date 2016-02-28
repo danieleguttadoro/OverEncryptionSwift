@@ -1,8 +1,7 @@
-AUTHURL = 'http://127.0.0.1:5000/v2.0'
-USER = 'enctesta'
-KEY = 'enctesta!'
+AUTH_URL = 'http://192.168.1.8:5000/v2.0'
+
 TENANT_NAME = 'encswift'
+META_TENANT = 'meta_encswift'
+
 ADMIN_USER = 'encadmin'
 ADMIN_KEY = 'encadmin!'
-META_TENANT = 'meta_encswift'
-META_TENANT_SEL = 'meta_sel'

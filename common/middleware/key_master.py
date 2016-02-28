@@ -6,15 +6,15 @@ from swift.common.wsgi import WSGIContext
 from swift.common.swob import wsgify
 
 #To use encswift
-from catalog_functions import *
+from catalogue import *
 import time
 
 from keystoneclient import session
 
-DAEMON_IP = '127.0.0.1'
+#DAEMON_IP = '127.0.0.1'
 class key_master(WSGIContext):
 
-    userID = "a1882078338d4ed1840ad1c7e8745537" 
+    userID = "1c58937ce4634808b8cbd8a638d01cfc" 
 
     def __init__(self,app, conf):
         self.app = app
@@ -42,66 +42,19 @@ class key_master(WSGIContext):
                 response = new_req.get_response(self.app)
                 cont_header = response.headers
                 sel_id_key_container = cont_header.get('x-container-meta-sel-id-key',"")
-
+                print "1"
                 if sel_id_key_container is not "":
                     resp_obj = req.get_response(self.app)
                     sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id-key',"")
+                    print "2"
                     if sel_id_key_object != sel_id_key_container:
-                        key = get_cat_obj(self.userID, "sjsjsj")
+                        key = get_cat_obj(self.userID, sel_id_key_object)
                         if key is not None:
                             print('Decryption token found')
+
                             env['swift_crypto_fetch_token'] = key
 
         return self.app(env, start_response)
-
-def receive_message(userid):
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters(DAEMON_IP))
-    channel = connection.channel()
-    channel.queue_declare(queue='swift_'+userid, durable=True)
-           
-    channel.basic_qos(prefetch_count=1)    
-    channel.basic_consume(receive_message,
-                      queue='swift_'+userid)
-
-    print(' Waiting for messages [%d] ...' % userid)
-    channel.start_consuming()
-
-def receive_message(ch, method, properties, body):
-        
-    #COMMENT: Setto il cryptotoken per renderlo disponibile all' encrypt
-    if body != None:
-        token = cyf.decrypt_resource(body,cyf.get_privatekey())
-    else: 
-        token = None
-    env['swift_crypto_fetch_token'] = token
-
-    return
-
-def send_message(userid,container):
-                
-    connection = pika.BlockingConnection(pika.ConnectionParameters(DAEMON_IP))
-    channel = connection.channel()
-    channel.queue_declare(queue='daemon_get_swift', durable=True)
-       
-    channel.confirm_delivery()
-    msg = 'GET_CRYPTOTOKEN' + '#' + userid + '#' + container
-
-    try:  
-        channel.basic_publish(exchange='',
-                              routing_key='daemon_get_swift',
-                              body=msg,
-                              properties=pika.BasicProperties(
-                              delivery_mode = 2, # make message persistent
-                              ))
-        
-        print(" Sent [%s]" % msg)
-    except pika.exceptions.ConnectionClosed as exc:
-        print('Error. Connection closed, and the message was never delivered.')
-
-    connection.close()
-
-    return
 
 def filter_factory(global_conf, **local_conf):
     conf = global_conf.copy()

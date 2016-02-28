@@ -15,7 +15,10 @@ def generate_container_key():
     """
     random_bytes = os.urandom(BLOCK_SIZE)
     secret = base64.b64encode(random_bytes).decode('utf-8')
-    return secret
+
+    random_id = os.urandom(BLOCK_SIZE/4)
+    id_ = base64.b64encode(random_id).decode('utf-8')
+    return id_,secret
 
 
 def encrypt_token(secret, sender, receiver):
@@ -65,47 +68,34 @@ def decrypt_token(secret, sender, receiver):
 
 
 def encrypt_msg(info, secret, path=False):
-    return "Encrypted String_" + info
-    """ 
-    
+    """
     Encrypt a message using AES
     """
     # padding : guarantee that the value is always MULTIPLE  of BLOCK_SIZE
-    """PADDING = '{'
+    PADDING = '{'
     pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
     encodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
-    cipher = AES.new(secret,AES.MODE_CBC)
+    cipher = AES.new(secret)
     encoded = encodeAES(cipher, info)
     if path:
         # Encoding base32 to avoid paths (names containing slashes /)
         encoded = base64.b32encode(encoded)
-    return encoded"""
-    pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
-    secret = pad(secret)
-    iv = Random.new().read(AES.block_size)
-    cipher = AES.new(secret, AES.MODE_CBC, iv)
-    result = base64.b64encode(iv + cipher.encrypt(info))
-    return result
-    
+    return encoded
+
+
 def decrypt_msg(encryptedString, secret, path=False):
-    return encryptedString[17:]
-    """ 
+    """
     Decrypt a message using AES
     """
-    """PADDING = '{'
+    PADDING = '{'
     if path:
         encryptedString = base64.b32decode(encryptedString)
     decodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
     key = secret
     cipher = AES.new(key)
     decoded = decodeAES(cipher, encryptedString)
-    return decoded"""
-    unpad = lambda s: s[: -ord(s[len(s) - 1:])]
-    encryptedString = base64.b64decode(encryptedString)
-    iv = encryptedString[:BLOCK_SIZE]
-    cipher = AES.new(secret, AES.MODE_CBC, iv)
-    result = unpad(cipher.decrypt(encryptedString[BLOCK_SIZE:]))
-    return result
+    return decoded
+
 
 def get_masterKey(userID):       # TODO: deprecate it
     """
