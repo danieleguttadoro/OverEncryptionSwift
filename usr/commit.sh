@@ -5,7 +5,7 @@ read branch
 sudo git checkout $branch
 cat /opt/stack/swift/swift/common/middleware/key_master.py | sudo tee /home/stack/swift/common/middleware/key_master.py
 cat /opt/stack/swift/swift/common/middleware/encrypt.py | sudo tee /home/stack/swift/common/middleware/encrypt.py
-#cat /opt/stack/swift/swift/common/middleware/decrypt.py | sudo tee /home/stack/swift/common/middleware/decrypt.py
+cat /opt/stack/swift/swift/common/middleware/config.py | sudo tee /home/stack/swift/common/middleware/config.py
 cat /opt/stack/swift/swift/common/middleware/catalogue.py | sudo tee /home/stack/swift/common/middleware/catalogue.py
 cat /opt/stack/swift/swift/common/middleware/crypto_functions.py | sudo tee /home/stack/swift/common/middleware/crypto_functions.py
 cat /opt/stack/swift/swift/common/middleware/connection.py | sudo tee /home/stack/swift/common/middleware/connection.py

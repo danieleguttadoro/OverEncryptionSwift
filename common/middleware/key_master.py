@@ -8,17 +8,27 @@ from swift.common.swob import wsgify
 #To use encswift
 from catalogue import *
 import time
-
+from config import *
 from keystoneclient import session
+from keystoneclient.v2_0 import client as kc
 
-#DAEMON_IP = '127.0.0.1'
 class key_master(WSGIContext):
 
-    userID = "1c58937ce4634808b8cbd8a638d01cfc" 
+    #userID = "1c58937ce4634808b8cbd8a638d01cfc" 
+
+    def getUserID(self):
+        """
+        Get the user's ID from Keystone
+        """
+        # Requires an admin connection
+        kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_PASS, tenant_name=ADMIN_TENANT, auth_url=AUTH_URL)
+        this_user = filter(lambda x: x.username == self.name, kc_conn.users.list())
+        return this_user[0].id
 
     def __init__(self,app, conf):
         self.app = app
         self.conf = conf
+        self.name = "swift"
 
     def __call__(self, env, start_response):
         
@@ -48,7 +58,9 @@ class key_master(WSGIContext):
                     sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id-key',"")
                     print "2"
                     if sel_id_key_object != sel_id_key_container:
-                        key = get_cat_obj(self.userID, sel_id_key_object)
+                        print self.getUserID()
+                        time.sleep(4)
+                        key = get_cat_obj(self.getUserID(), sel_id_key_container)
                         if key is not None:
                             print('Decryption token found')
 
