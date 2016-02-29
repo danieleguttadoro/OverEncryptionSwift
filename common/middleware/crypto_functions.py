@@ -43,7 +43,7 @@ def encrypt_token(secret, sender, receiver):
     return result
 
 
-def decrypt_token(secret, sender, receiver):
+def decrypt_token(secret, sender, receiver, pvt_key,pub_key):
     """
     Decipher the token from the catalog.
     Returns:
@@ -60,8 +60,8 @@ def decrypt_token(secret, sender, receiver):
         result = unpad(cipher.decrypt(secret[BLOCK_SIZE:]))
     else:
         # RSA decipher
-        sender_pub_key = RSA.importKey(get_publicKey(sender))
-        receiver_priv_key = RSA.importKey(get_privateKey(receiver))
+        sender_pub_key = pub_key
+        receiver_priv_key = pvt_key
         deciph1 = receiver_priv_key.decrypt(secret)
         result = sender_pub_key.encrypt(deciph1, 'x')[0]
     return result

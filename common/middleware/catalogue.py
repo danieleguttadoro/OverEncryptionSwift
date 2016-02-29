@@ -55,11 +55,11 @@ def get_cat_crypto_node (iduser, idkey):
     hash_map = load_catalogue(iduser)
     return hash_map[idkey]
 
-def get_cat_obj (iduser,idkey):
+def get_cat_obj (iduser,idkey,pvt_key,pub_key):
 
     node = get_cat_crypto_node(iduser,idkey)
     token = decrypt_token(secret=base64.b64decode('%s' % node['TOKEN']),
-                          sender=node['OWNERTOKEN'],receiver=iduser)
+                          sender=node['OWNERTOKEN'],receiver=iduser,pvt_key=pvt_key,pub_key=pub_key)
     node['TOKEN'] = token
     return node # return a clear node
 

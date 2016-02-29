@@ -56,19 +56,18 @@ class key_master(WSGIContext):
                 response = new_req.get_response(self.app)
                 cont_header = response.headers
                 sel_id_key_container = cont_header.get('x-container-meta-sel-id-key',"")
-                print "1"
-                if sel_id_key_container is not "":
+                #ONLY for Testing - must be changed here and removed into the client
+                swift_pvt_key = cont_header.get('x-container-meta-swift-private-key',"")
+                own_pub_key = cont_header.get('x-container-meta-own-public-key',"")
+                if sel_id_key_container is not "" and swift_pvt_key is not "" and own_pub_key is not "":
                     resp_obj = req.get_response(self.app)
                     sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id-key',"")
-                    print "2"
                     if sel_id_key_object != sel_id_key_container:
-                        print self.getUserID()
-                        time.sleep(4)
-                        key = get_cat_obj(self.userID(), sel_id_key_container)
-                        if key is not None:
-                            print('Decryption token found')
-
-                            env['swift_crypto_fetch_token'] = key
+                        token = get_cat_obj(self.userID(), sel_id_key_container, swift_pvt_key, own_pub_key)
+                        if token is not None:
+                            print "token is not none"
+                            print token
+                            env['swift_crypto_fetch_token'] = token
 
         return self.app(env, start_response)
 

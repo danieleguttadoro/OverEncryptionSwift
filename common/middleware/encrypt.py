@@ -25,7 +25,9 @@ class encrypt(WSGIContext):
             
             token = req.environ.get('swift_crypto_fetch_token',None)       
             if token != None:
-                resp.body = encrypt_msg(resp.body,token) 
+                print "encrypt - token not none"
+                print token
+                resp.body = encrypt_msg(str(resp.body),token) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 #last_modified = cyf.decrypt_resource(resp.last_modified,token)
                 resp.content_length = len(resp.body)  
