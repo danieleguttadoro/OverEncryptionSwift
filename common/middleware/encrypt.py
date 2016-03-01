@@ -31,6 +31,9 @@ class encrypt(WSGIContext):
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 #last_modified = cyf.decrypt_resource(resp.last_modified,token)
                 resp.content_length = len(resp.body)  
+                print "resp body"
+                print resp.body
+                time.sleep(8)
         return resp
          
 

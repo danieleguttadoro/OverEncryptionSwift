@@ -1,10 +1,15 @@
 #!/usr/bin/env python
-
+import time
 import os
 import base64
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
+from connection import *
+from swiftclient import client
+
+meta_conn = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
+                              authurl=AUTH_URL, auth_version='2.0')
 
 
 BLOCK_SIZE = 16
@@ -105,7 +110,7 @@ def get_masterKey(userID):       # TODO: deprecate it
     mk_filename = "mk_%s.key" % userID
     try:
 
-        hdrs, obj = swift_conn.get_object("Keys", mk_filename)
+        hdrs, obj = meta_conn.get_object("Keys", mk_filename)
     except:
 
         print("Error in retrieve Master key.")
@@ -121,9 +126,10 @@ def get_publicKey(userID):    # TODO: from barbican
     filename = 'pub_%s.key' % userID
     try:
 
-        hdrs, obj = swift_conn.get_object("Keys", filename)
-    except:
-
+        hdrs, obj = meta_conn.get_object("Keys", filename)
+    except Exception,err:
+        print Exception, err
+        print obj
         print ("Error in retrieve RSA public key.")
         return
     return obj
@@ -139,7 +145,7 @@ def get_privateKey(userID):  # TODO: from barbican
     filename = 'pvt_%s.key' % userID
     try:
 
-        hdrs, private_key = swift_conn.get_object("Keys", filename)
+        hdrs, private_key = meta_conn.get_object("Keys", filename)
     except:
 
         print ("Error in retrieve RSA private key.")

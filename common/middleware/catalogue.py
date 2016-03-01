@@ -4,11 +4,6 @@ import json
 import base64
 from itertools import *
 from crypto_functions import *
-from connection import *
-from swiftclient import client
-
-meta_conn_sel = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
-                              authurl=AUTH_URL, auth_version='2.0')
 
 def get_catalogue (iduser):
 
@@ -18,7 +13,7 @@ def get_catalogue (iduser):
     CatContainer = '.Cat_usr%s' % iduser
     CatSource = '$cat_graph%s.json' % iduser
     try:
-        hdrs, json_data_catalog = meta_conn_sel.get_object(CatContainer, CatSource)
+        hdrs, json_data_catalog = meta_conn.get_object(CatContainer, CatSource)
     except Exception, err: 
         print Exception, err
         json_data_catalog = '{err}'
@@ -29,7 +24,7 @@ def put_catalogue (iduser, cat): #create_catalogue == put_catalogue (iduser, {})
     CatContainer = '.Cat_usr%s' % iduser
     CatSource = '$cat_graph%s.json' % iduser
     try:
-        meta_conn_sel.put_object(CatContainer, CatSource, cat)
+        meta_conn.put_object(CatContainer, CatSource, cat)
         return True
     except Exception, err:
         print Exception, err           
