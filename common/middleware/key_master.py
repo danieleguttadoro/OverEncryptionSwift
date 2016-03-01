@@ -8,7 +8,6 @@ from swift.common.swob import wsgify
 #To use encswift
 from catalogue import *
 import time
-from config import *
 from connection import *
 from create_user import CreateUser
 from keystoneclient import session
@@ -23,7 +22,7 @@ class key_master(WSGIContext):
         Get the user's ID from Keystone
         """
         # Requires an admin connection
-        kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_PASS, tenant_name=ADMIN_TENANT, auth_url=AUTH_URL)
+        kc_conn = kc.Client(username=ADMIN, password=AD_KEY, tenant_name=ADMIN_TENANT, auth_url=AUTH_URL)
         this_user = filter(lambda x: x.username == self.name, kc_conn.users.list())
         return this_user[0].id
 
@@ -43,7 +42,15 @@ class key_master(WSGIContext):
         userid     = env.get('HTTP_X_USER_ID',None)
         print "USERNAME ----> ", username
         print "USERID   ----> ", userid
-        
+       
+        if req.method == "PUT":
+            if obj == "x-container-meta-swift-private-key":
+                self.private_key = str(req.body)
+                req = Request.blank(None,None,None,None)  
+            elif obj == "x-container-meta-own-public-key":
+                self.public_key = str(req.body)
+                req = Request.blank(None,None,None,None)
+ 
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if req.method == "GET" and username != "ceilometer" and username != "encadmin" and username != "admin" and username != None:
             
@@ -63,7 +70,7 @@ class key_master(WSGIContext):
                     resp_obj = req.get_response(self.app)
                     sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id-key',"")
                     if sel_id_key_object != sel_id_key_container:
-                        token = get_cat_obj(self.userID(), sel_id_key_container, swift_pvt_key, own_pub_key)
+                        token = get_cat_obj(self.userID, sel_id_key_container)
                         if token is not None:
                             print "token is not none"
                             print token

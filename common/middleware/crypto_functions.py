@@ -43,7 +43,7 @@ def encrypt_token(secret, sender, receiver):
     return result
 
 
-def decrypt_token(secret, sender, receiver, pvt_key,pub_key):
+def decrypt_token(secret, sender, receiver):
     """
     Decipher the token from the catalog.
     Returns:
@@ -60,8 +60,8 @@ def decrypt_token(secret, sender, receiver, pvt_key,pub_key):
         result = unpad(cipher.decrypt(secret[BLOCK_SIZE:]))
     else:
         # RSA decipher
-        sender_pub_key = pub_key
-        receiver_priv_key = pvt_key
+        sender_pub_key = RSA.importKey(get_publicKey(sender))
+        receiver_priv_key = RSA.importKey(get_privateKey(receiver))
         deciph1 = receiver_priv_key.decrypt(secret)
         result = sender_pub_key.encrypt(deciph1, 'x')[0]
     return result
@@ -96,18 +96,21 @@ def decrypt_msg(encryptedString, secret, path=False):
     decoded = decodeAES(cipher, encryptedString)
     return decoded
 
-
 def get_masterKey(userID):       # TODO: deprecate it
     """
     Get the master key from local file
     Returns:
         The master key
     """
-    mk_filename = "obj_world/mk_%s.key" % userID
-    with open(mk_filename, 'r') as f:
-        master_key = f.read()
-    return base64.b64decode(master_key)
+    mk_filename = "mk_%s.key" % userID
+    try:
 
+        hdrs, obj = swift_conn.get_object("Keys", mk_filename)
+    except:
+
+        cu_logger.info("Error in retrieve Master key.")
+        return
+    return obj
 
 def get_publicKey(userID):    # TODO: from barbican
     """
@@ -115,10 +118,15 @@ def get_publicKey(userID):    # TODO: from barbican
     Returns:
         Public key from barbican
     """
-    filename = 'obj_world/pub_%s.key' % userID
-    with open(filename, 'r') as f:
-        pubkey = f.read()
-    return pubkey
+    filename = 'pub_%s.key' % userID
+    try:
+
+        hdrs, obj = swift_conn.get_object("Keys", filename)
+    except:
+
+        cu_logger.info("Error in retrieve RSA public key.")
+        return
+    return obj
 
 
 def get_privateKey(userID):  # TODO: from barbican
@@ -128,9 +136,14 @@ def get_privateKey(userID):  # TODO: from barbican
         The plain private key
     """
     master_key = get_masterKey(userID)
-    filename = 'obj_world/pvt_%s.key' % userID
-    with open(filename, 'r') as f:
-        private_key = f.read()
+    filename = 'pvt_%s.key' % userID
+    try:
+
+        hdrs, private_key = swift_conn.get_object("Keys", filename)
+    except:
+
+        cu_logger.info("Error in retrieve RSA private key.")
+        return
     unpad = lambda s: s[:-ord(s[len(s) - 1:])]
     private_key = base64.b64decode(private_key)
     iv = private_key[:BLOCK_SIZE]
