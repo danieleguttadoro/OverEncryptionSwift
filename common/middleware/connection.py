@@ -1,4 +1,4 @@
-AUTH_URL = 'http://192.168.1.131:5000/v2.0'
+AUTH_URL = 'http://192.168.1.134:5000/v2.0'
 
 TENANT_NAME = 'encswift'
 META_TENANT = 'meta_encswift'

@@ -43,14 +43,6 @@ class key_master(WSGIContext):
         print "USERNAME ----> ", username
         print "USERID   ----> ", userid
        
-        if req.method == "PUT":
-            if obj == "x-container-meta-swift-private-key":
-                self.private_key = str(req.body)
-                req = Request.blank(None,None,None,None)  
-            elif obj == "x-container-meta-own-public-key":
-                self.public_key = str(req.body)
-                req = Request.blank(None,None,None,None)
- 
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if req.method == "GET" and username != "ceilometer" and username != "encadmin" and username != "admin" and username != None:
             

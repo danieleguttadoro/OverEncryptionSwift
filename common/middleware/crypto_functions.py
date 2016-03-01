@@ -108,9 +108,9 @@ def get_masterKey(userID):       # TODO: deprecate it
         hdrs, obj = swift_conn.get_object("Keys", mk_filename)
     except:
 
-        cu_logger.info("Error in retrieve Master key.")
+        print("Error in retrieve Master key.")
         return
-    return obj
+    return base64.b64decode(obj)
 
 def get_publicKey(userID):    # TODO: from barbican
     """
@@ -124,7 +124,7 @@ def get_publicKey(userID):    # TODO: from barbican
         hdrs, obj = swift_conn.get_object("Keys", filename)
     except:
 
-        cu_logger.info("Error in retrieve RSA public key.")
+        print ("Error in retrieve RSA public key.")
         return
     return obj
 
@@ -142,7 +142,7 @@ def get_privateKey(userID):  # TODO: from barbican
         hdrs, private_key = swift_conn.get_object("Keys", filename)
     except:
 
-        cu_logger.info("Error in retrieve RSA private key.")
+        print ("Error in retrieve RSA private key.")
         return
     unpad = lambda s: s[:-ord(s[len(s) - 1:])]
     private_key = base64.b64decode(private_key)
