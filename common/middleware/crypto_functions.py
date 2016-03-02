@@ -1,16 +1,18 @@
 #!/usr/bin/env python
-import time
+
 import os
 import base64
 from Crypto import Random
 from Crypto.Cipher import AES
-from Crypto.PublicKey import RSA
+#from Crypto.PublicKey import RSA
+import imp
 from connection import *
 from swiftclient import client
 
 meta_conn = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
                               authurl=AUTH_URL, auth_version='2.0')
 
+RSA = imp.load_source('Crypto.PublicKey', '/usr/lib/python2.7/dist-packages/Crypto/PublicKey/RSA.py')
 
 BLOCK_SIZE = 16
 

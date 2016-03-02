@@ -1,6 +1,6 @@
 from swift import gettext_ as _
 import md5
-import time
+
 from swift.common.swob import Request, HTTPServerError, wsgify
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
