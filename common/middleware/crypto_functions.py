@@ -129,7 +129,6 @@ def get_publicKey(userID):    # TODO: from barbican
         hdrs, obj = meta_conn.get_object("Keys", filename)
     except Exception,err:
         print Exception, err
-        print obj
         print ("Error in retrieve RSA public key.")
         return
     return obj

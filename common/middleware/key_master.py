@@ -7,14 +7,11 @@ from swift.common.swob import wsgify
 
 #To use encswift
 from catalogue import *
-import time
 from connection import *
 from keystoneclient import session
 from keystoneclient.v2_0 import client as kc
 
 class key_master(WSGIContext):
-
-    #userID = "1c58937ce4634808b8cbd8a638d01cfc" 
 
     def getUserID(self):
         """
@@ -29,24 +26,21 @@ class key_master(WSGIContext):
         self.app = app
         self.conf = conf
         self.name = "swift"
-        #createUser(SWIFT_USER,SWIFT_PASS,TENANT_NAME,META_TENANT,"Member",AUTH_URL).start()
         self.userID = self.getUserID()
 
     def __call__(self, env, start_response):
         
-        print "----------------- KEY_MASTER -----------------------"
         req = Request(env)
         
         username   = env.get('HTTP_X_USER_NAME',None)
         userid     = env.get('HTTP_X_USER_ID',None)
-        print "USERNAME ----> ", username
-        print "USERID   ----> ", userid
        
         #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
         if req.method == "GET" and username != "ceilometer" and username != "encadmin" and username != "admin" and username != None:
+            print "----------------- KEY_MASTER -----------------------"
+            print ("Current User : %s" % username)
             version, account, container, obj = req.split_path(1,4,True)
             if obj != None:
-                print 'obj is not none'
                 new_req = Request.blank(req.path_info,None,req.headers,None)
                 new_req.method = "HEAD"
                 new_req.path_info = "/".join(["",version,account,container])
@@ -54,15 +48,11 @@ class key_master(WSGIContext):
                 cont_header = response.headers
                 sel_id_key_container = cont_header.get('x-container-meta-sel-id-key',"")
                 if sel_id_key_container is not "":
-                    print 'sel_id_cont is not none'
                     resp_obj = req.get_response(self.app)
                     sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id-key',"")
                     if sel_id_key_object != sel_id_key_container:
-                        print' sel != sel '
                         token = get_cat_obj(self.userID, sel_id_key_container).get('TOKEN',None)
                         if token is not None:
-                            print "token is not none"
-                            print token
                             env['swift_crypto_fetch_token'] = token
 
         return self.app(env, start_response)

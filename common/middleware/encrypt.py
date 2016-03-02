@@ -16,24 +16,18 @@ class encrypt(WSGIContext):
    @wsgify
    def __call__(self, req):
         
-        print "----------------- ENCRYPT -----------------------"
         resp = req.get_response(self.app)
-        print "aspettando....."
         env = req.environ
         username = env.get('HTTP_X_USER_NAME',None)
+        
         if req.method == "GET" and username!= 'ceilometer' and username != 'admin' and username != 'encadmin' and username != None:               
-            
+            print "----------------- ENCRYPT -----------------------"
+            print ("Current User: %s" % username)
             token = req.environ.get('swift_crypto_fetch_token',None)       
             if token != None:
-                print "encrypt - token not none"
-                print token
                 resp.body = encrypt_msg(str(resp.body),token) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
-                #last_modified = cyf.decrypt_resource(resp.last_modified,token)
                 resp.content_length = len(resp.body)  
-                print "resp body"
-                print resp.body
-                time.sleep(8)
         return resp
          
 

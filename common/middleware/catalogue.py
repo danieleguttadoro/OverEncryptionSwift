@@ -61,12 +61,8 @@ def get_cat_obj (iduser,idkey):
 def create_node (iduser, idcontainer):
 
     idkey, token = generate_container_key()
-    print "token"
-    print token
     obj = {}
     obj['TOKEN'] = base64.b64encode(token)
-    print "obj token"
-    print obj['TOKEN']
     obj['IDCONTAINER'] = idcontainer
     obj['OWNERTOKEN'] = iduser
     return idkey, obj # clear token in obj
