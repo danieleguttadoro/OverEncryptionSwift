@@ -16,5 +16,6 @@ sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/receive_message.py /opt
 sudo chmod +x /opt/stack/sel-daemon/daemon.py
 sudo pip install --upgrade pip
 sudo pip install pika
+sudo rm -r -fd /usr/local/lib/python2.7/dist-packages/Crypto/
 #cat /home/stack/swift/usr/stow/opt/stack/swift/swift.egg-info/entry_points.txt | sudo tee /opt/stack/swift/swift.egg-info/entry_points.txt
 #cat /home/stack/swift/usr/stow/etc/swift/proxy-server.conf | sudo tee /etc/swift/proxy-server.conf
