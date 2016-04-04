@@ -6,7 +6,7 @@ from swift.common.wsgi import WSGIContext
 from swift.common.swob import wsgify
 
 #To use encswift
-from catalogue import *
+from catalog_functions import *
 from connection import *
 from keystoneclient import session
 from keystoneclient.v2_0 import client as kc
@@ -54,7 +54,8 @@ class key_master(WSGIContext):
                         token = get_cat_obj(self.userID, sel_id_key_container).get('TOKEN',None)
                         if token is not None:
                             env['swift_crypto_fetch_token'] = token
-
+                        else:
+                            env['swift_crypto_fetch_token'] = "TrPhase"
         return self.app(env, start_response)
 
 def filter_factory(global_conf, **local_conf):

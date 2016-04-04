@@ -1,7 +1,7 @@
 from swift import gettext_ as _
 import md5
 
-from swift.common.swob import Request, HTTPServerError, wsgify
+from swift.common.swob import Request,Response, HTTPServerError, wsgify
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
@@ -25,6 +25,8 @@ class encrypt(WSGIContext):
             print ("Current User: %s" % username)
             token = req.environ.get('swift_crypto_fetch_token',None)       
             if token != None:
+                if token == "TrPhase":
+                  return Response(request=req, status=403, body="Transient Phase", content_type="text/plain")
                 resp.body = encrypt_msg(str(resp.body),token) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 resp.content_length = len(resp.body)  

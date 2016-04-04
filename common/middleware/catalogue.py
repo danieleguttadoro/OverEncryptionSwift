@@ -48,7 +48,7 @@ def update_catalogue (iduser, idkey, obj):
 def get_cat_crypto_node (iduser, idkey):
 
     hash_map = load_catalogue(iduser)
-    return hash_map[idkey]
+    return hash_map.get(idkey,{})
 
 def get_cat_obj (iduser,idkey):
 
