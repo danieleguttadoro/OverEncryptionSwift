@@ -81,12 +81,12 @@ def encrypt_msg(info, secret, path=False):
     # padding : guarantee that the value is always MULTIPLE  of BLOCK_SIZE
     PADDING = '{'
     pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
-    encodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
+    encodeAES = lambda c, s: (c.encrypt(pad(s)))
     cipher = AES.new(secret)
     encoded = encodeAES(cipher, info)
     if path:
         # Encoding base32 to avoid paths (names containing slashes /)
-        encoded = base64.b32encode(encoded)
+        encoded = (encoded)
     return encoded
 
 
