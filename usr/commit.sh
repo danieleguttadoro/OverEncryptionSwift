@@ -14,8 +14,9 @@ cat /opt/stack/swift/swift/common/middleware/connection.py | sudo tee /home/stac
 
 #cat /etc/swift/proxy-server.conf  | sudo tee /home/stack/swift/usr/stow/etc/swift/proxy-server.conf
 
-cat /opt/stack/sel-daemon/receive_message.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/receive_message.py
-cat /opt/stack/sel-daemon/rabbit_connection.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/rabbit_connection.py
+cat /opt/stack/sel-daemon/connection.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/connection.py
+cat /opt/stack/sel-daemon/catalogue.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/catalogue.py
+cat /opt/stack/sel-daemon/crypto_functions.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/crypto_functions.py
 cat /opt/stack/sel-daemon/daemon.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/daemon.py
 
 sudo git add *
