@@ -3,6 +3,8 @@
 import json
 import base64
 from itertools import *
+from crypto_functions import *
+
 
 
 def get_catalogue (iduser):
@@ -49,7 +51,7 @@ def get_cat_crypto_node (iduser, idkey):
 
     hash_map = load_catalogue(iduser)
     return hash_map.get(idkey,{})
-'''
+
 def get_cat_obj (iduser,idkey):
 
     node = get_cat_crypto_node(iduser,idkey)
@@ -58,7 +60,7 @@ def get_cat_obj (iduser,idkey):
                               sender=node['OWNERTOKEN'],receiver=iduser)
         node['TOKEN'] = token
     return node # return a clear node
-'''
+
 def create_node (iduser, idcontainer):
 
     idkey, token = generate_container_key()
