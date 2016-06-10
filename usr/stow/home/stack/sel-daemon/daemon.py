@@ -9,10 +9,12 @@ from Crypto.PublicKey import RSA
 from flask import Flask, request,Response
 app = Flask(__name__)
   
-logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(DAEMON_PORT))
+
+
+logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 @app.route("/update",methods=['PUT'])
 def update_req():                                                     
@@ -48,7 +50,7 @@ def create_req():
         swift_conn.put_object("Keys", suid, pub_key)
 
         logging.info('OK: create user')
-        return Response(status=200)
+        return Response(status=200, body=suid)
     else:
         logging.warning('ERROR: on create_req function')
         return Response(status=400)
@@ -80,11 +82,11 @@ def getUserID(username):
         Get the user's ID from Keystone
         """
         # Requires an admin connection
-        kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_KEY, tenant_name
-        this_user = filter(lambda x: x.username == self.name, kc_conn.users.list
+        kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_KEY, tenant_name=TENANT_NAME, auth_url=AUTH_URL)
+        this_user = filter(lambda x: x.username == username, kc_conn.users.list())
         return this_user[0].id
 
-def decrypt_token(secret):
+def decrypt(secret):
     """
     Decipher the information sent by the client.
     Returns:
@@ -93,3 +95,5 @@ def decrypt_token(secret):
     # RSA decipher
     receiver_priv_key = RSA.importKey(self.get_privateKey())
     return receiver_priv_key.decrypt(secret).split('#')
+
+

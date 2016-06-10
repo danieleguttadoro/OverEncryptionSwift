@@ -46,10 +46,10 @@ class key_master(WSGIContext):
                 new_req.path_info = "/".join(["",version,account,container])
                 response = new_req.get_response(self.app)
                 cont_header = response.headers
-                sel_id_key_container = cont_header.get('x-container-meta-sel-id-key',"")
+                sel_id_key_container = cont_header.get('x-container-meta-sel-id',"")
                 if sel_id_key_container is not "":
                     resp_obj = req.get_response(self.app)
-                    sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id-key',"")
+                    sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id',"")
                     if sel_id_key_object != sel_id_key_container:
                         token = get_cat_obj(self.userID, sel_id_key_container).get('TOKEN',None)
                         if token is not None:

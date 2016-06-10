@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-from simplestack.config import *
-from simplestack.keystone import SimpleKeystoneClient
-from simplestack.escudo_user_properties import EscudoMetaUserProperties
+from connection import *
+from simplekeystone import SimpleKeystoneClient
 
 class CreateUser:
 
@@ -37,7 +36,7 @@ class CreateUser:
 
         # Escudo Meta-User Properties
         # Generate the catalogs
-        self.emup = EscudoMetaUserProperties(name=self.user, password=self.password,
-                                             meta_tenant_name=self.meta_tenant, authurl=self.url)
-        self.emup.create_catalog()
+        #self.emup = EscudoMetaUserProperties(name=self.user, password=self.password,
+        #                                     meta_tenant_name=self.meta_tenant, authurl=self.url)
+        #self.emup.create_catalog()
         #self.emup.generate_keys()
