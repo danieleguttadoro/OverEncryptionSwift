@@ -10,13 +10,14 @@ sudo cp /home/stack/swift/usr/stow/home/vagrant/.vimrc /home/vagrant/
 
 sudo mkdir -m 755 -p /opt/stack/sel-daemon/
 #sudo mkdir -m 755 -p /opt/stack/sel-daemon/config
-#sudo mkdir -m 755 -p /opt/stack/sel-daemon/log
+sudo mkdir -m 755 -p /opt/stack/sel-daemon/logs
 
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/daemon.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/catalogue.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/connection.py /opt/stack/sel-daemon/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/create_user.py /opt/stack/sel-daemon/
 #sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/config/daemon.ini /opt/stack/sel-daemon/config/
-#sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/log/daemon.log /opt/stack/sel-daemon/log/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log /opt/stack/sel-daemon/log/
 
 sudo chmod +x /opt/stack/sel-daemon/daemon.py
 
