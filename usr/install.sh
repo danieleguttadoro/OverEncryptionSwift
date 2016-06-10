@@ -16,6 +16,7 @@ sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/daemon.py /opt/stack/se
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/catalogue.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/connection.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/create_user.py /opt/stack/sel-daemon/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/simplekeystone.py /opt/stack/sel-daemon/
 #sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/config/daemon.ini /opt/stack/sel-daemon/config/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log /opt/stack/sel-daemon/log/
 
