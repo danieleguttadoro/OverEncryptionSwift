@@ -127,7 +127,8 @@ def start(mode):
        return update_req()
     if mode == "create":
        return create_req()
-
+    if mode == "get_id" and request.method == "PUT":
+       return Response(getUserID(request.data))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(DAEMON_PORT))
