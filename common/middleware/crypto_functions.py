@@ -35,7 +35,7 @@ def encrypt_token(secret, sender, receiver):
     # sender = self.userID
     if sender == receiver:
         # AES encryption using the master key
-        master_key = get_masterKey(sender)
+        master_key = get_masterKey()
         pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
         secret = pad(secret)
         iv = Random.new().read(AES.block_size)
@@ -43,7 +43,7 @@ def encrypt_token(secret, sender, receiver):
         result = base64.b64encode(iv + cipher.encrypt(secret))
     else:
         # RSA encryption using the sender's private key and the receiver's public one
-        sender_priv_key = RSA.importKey(get_privateKey(sender))
+        sender_priv_key = RSA.importKey(get_privateKey())
         receiver_pub_key = RSA.importKey(get_publicKey(receiver))
         ciph1 = sender_priv_key.decrypt(secret)
         result = receiver_pub_key.encrypt(ciph1, 'x')[0]
@@ -59,7 +59,7 @@ def decrypt_token(secret, sender, receiver):
     # receiver = self.userID
     if sender == receiver:
         # AES decipher
-        master_key = get_masterKey(sender)
+        master_key = get_masterKey()
         unpad = lambda s: s[: -ord(s[len(s) - 1:])]
         secret = base64.b64decode(secret)
         iv = secret[:BLOCK_SIZE]
@@ -68,7 +68,7 @@ def decrypt_token(secret, sender, receiver):
     else:
         # RSA decipher
         sender_pub_key = RSA.importKey(get_publicKey(sender))
-        receiver_priv_key = RSA.importKey(get_privateKey(receiver))
+        receiver_priv_key = RSA.importKey(get_privateKey())
         deciph1 = receiver_priv_key.decrypt(secret)
         result = sender_pub_key.encrypt(deciph1, 'x')[0]
     return result
