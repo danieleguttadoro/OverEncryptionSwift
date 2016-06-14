@@ -18,11 +18,11 @@ sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/catalogue.py /opt/stack
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/connection.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/create_user.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/simplekeystone.py /opt/stack/sel-daemon/
-sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/pub.key /opt/stack/sel-daemon/
-sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/pvt.key /opt/stack/sel-daemon/
-sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/mk.key /opt/stack/sel-daemon/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/keys/pub.key /opt/stack/sel-daemon/keys/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/keys/pvt.key /opt/stack/sel-daemon/keys/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/keys/mk.key /opt/stack/sel-daemon/keys/
 #sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/config/daemon.ini /opt/stack/sel-daemon/config/
-sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log /opt/stack/sel-daemon/log/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log /opt/stack/sel-daemon/logs/
 
 sudo chmod +x /opt/stack/sel-daemon/daemon.py
 
