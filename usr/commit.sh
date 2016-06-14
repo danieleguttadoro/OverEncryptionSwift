@@ -11,6 +11,9 @@ cat /opt/stack/swift/swift/common/middleware/encrypt.py | sudo tee /home/stack/s
 cat /opt/stack/swift/swift/common/middleware/catalogue.py | sudo tee /home/stack/swift/common/middleware/catalogue.py
 cat /opt/stack/swift/swift/common/middleware/crypto_functions.py | sudo tee /home/stack/swift/common/middleware/crypto_functions.py
 cat /opt/stack/swift/swift/common/middleware/connection.py | sudo tee /home/stack/swift/common/middleware/connection.py
+cat /opt/stack/swift/swift/common/middleware/mk.key | sudo tee /home/stack/swift/common/middleware/mk.key
+cat /opt/stack/swift/swift/common/middleware/pub.key | sudo tee /home/stack/swift/common/middleware/pub.key
+cat /opt/stack/swift/swift/common/middleware/pvt.key | sudo tee /home/stack/swift/common/middleware/pvt.key
 
 #cat /etc/swift/proxy-server.conf  | sudo tee /home/stack/swift/usr/stow/etc/swift/proxy-server.conf
 

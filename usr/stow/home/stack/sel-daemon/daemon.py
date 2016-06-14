@@ -23,16 +23,16 @@ def update_req():
         idkey = request.headers['id']
         obj = json.loads(request.data)
         update_catalogue(receiver, idkey, obj)
-        logging.info('OK: receiver %s, idkey %s' % (receiver,idkey))
+        #logging.info('OK: receiver %s, idkey %s' % (receiver,idkey))
         return Response(status=200)
     except Exception,err:
-        logging.warning('Exception: %s' % err)
+        #logging.warning('Exception: %s' % err)
         return Response(status=304)
 
 
 def create_req():                                                     
     if request.method == 'GET':
-        logging.info('OK: send public_key')
+        #logging.info('OK: send public_key')
         resp = Response(get_publicKey())
         return resp
         #eeturn Response(get_publicKey(),status=200)
@@ -52,11 +52,11 @@ def create_req():
                                                    auth_version='2.0')
         swift_conn.put_object("Keys", suid, client_pubKey)
 
-        logging.info('OK: create user')
+        #logging.info('OK: create user')
         resp = Response(suid)
         return resp
     else:
-        logging.warning('ERROR: on create_req function')
+        #logging.warning('ERROR: on create_req function')
         return Response(status=400)
 
 def get_masterKey():    
@@ -122,7 +122,7 @@ def decrypt(secret):
 
 @app.route("/<mode>",methods=['GET','PUT'])
 def start(mode):
-    logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    #logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     if mode == "update" and request.method == "PUT":
        return update_req()
     if mode == "create":

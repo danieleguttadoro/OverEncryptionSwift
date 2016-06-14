@@ -4,6 +4,10 @@ import json
 import base64
 from itertools import *
 
+from swiftclient import client
+from connection import *
+meta_conn = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
+                              authurl=AUTH_URL, auth_version='2.0')
 
 def get_catalogue (iduser):
 

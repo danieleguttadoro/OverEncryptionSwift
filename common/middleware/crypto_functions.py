@@ -103,21 +103,32 @@ def decrypt_msg(encryptedString, secret, path=False):
     decoded = decodeAES(cipher, encryptedString)
     return decoded
 
-def get_masterKey(userID):       # TODO: deprecate it
-    """
-    Get the master key from local file
+def get_masterKey():    
+    """ 
+    Get the user's public key
     Returns:
-        The master key
+        Public key
     """
-    mk_filename = "mk_%s.key" % userID
-    try:
 
-        hdrs, obj = meta_conn.get_object("Keys", mk_filename)
-    except:
-
-        print("Error in retrieve Master key.")
-        return
-    return base64.b64decode(obj)
+    filename = '/opt/stack/swift/swift/common/middleware/mk.key'
+    with open(filename, 'r') as f:
+        master_key = f.read()
+    return base64.b64decode(master_key)
+    
+def get_privateKey():  
+    """
+    Get the plain user's private key
+    Returns:
+        The plain private key
+    """
+    filename = '/opt/stack/swift/swift/common/middleware/pvt.key'
+    with open(filename, 'r') as f:
+        private_key = f.read()
+    unpad = lambda s: s[:-ord(s[len(s) - 1:])]
+    private_key = base64.b64decode(private_key)
+    iv = private_key[:BLOCK_SIZE]
+    cipher = AES.new(get_masterKey(), AES.MODE_CBC, iv) 
+    return unpad(cipher.decrypt(private_key[BLOCK_SIZE:]))
 
 def get_publicKey(userID):    # TODO: from barbican
     """
@@ -125,7 +136,7 @@ def get_publicKey(userID):    # TODO: from barbican
     Returns:
         Public key from barbican
     """
-    filename = 'pub_%s.key' % userID
+    filename =  userID
     try:
 
         hdrs, obj = meta_conn.get_object("Keys", filename)
@@ -135,24 +146,3 @@ def get_publicKey(userID):    # TODO: from barbican
         return
     return obj
 
-
-def get_privateKey(userID):  # TODO: from barbican
-    """
-    Get the plain user's private key from barbican
-    Returns:
-        The plain private key
-    """
-    master_key = get_masterKey(userID)
-    filename = 'pvt_%s.key' % userID
-    try:
-
-        hdrs, private_key = meta_conn.get_object("Keys", filename)
-    except:
-
-        print ("Error in retrieve RSA private key.")
-        return
-    unpad = lambda s: s[:-ord(s[len(s) - 1:])]
-    private_key = base64.b64decode(private_key)
-    iv = private_key[:BLOCK_SIZE]
-    cipher = AES.new(master_key, AES.MODE_CBC, iv)
-    return unpad(cipher.decrypt(private_key[BLOCK_SIZE:]))
