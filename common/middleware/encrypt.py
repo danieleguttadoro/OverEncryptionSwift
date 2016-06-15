@@ -6,7 +6,8 @@ from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
-from crypto_functions import *
+
+from token_manager import *
 
 class encrypt(WSGIContext):
 

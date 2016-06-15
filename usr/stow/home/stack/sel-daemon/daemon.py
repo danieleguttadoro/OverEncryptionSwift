@@ -1,6 +1,6 @@
 import logging
 
-from catalogue import *
+from catalog_manager import *
 from connection import *
 from create_user import CreateUser
 

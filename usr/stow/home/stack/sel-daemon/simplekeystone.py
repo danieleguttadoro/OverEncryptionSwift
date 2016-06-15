@@ -20,10 +20,10 @@ class SimpleKeystoneClient:
     def create_tenant(self, name, **kwargs):
         try:
             tenant = self.ks_client.tenants.find(name=name)
-            #logger.info('Tenant %s exists [id: %s].' % (name, tenant.id))
+            logger.info('Tenant %s exists [id: %s].' % (name, tenant.id))
         except NotFound:
             tenant = self.ks_client.tenants.create(tenant_name=name, **kwargs)
-            #logger.info('Tenant %s created [id: %s].' % (name, tenant.id))
+            logger.info('Tenant %s created [id: %s].' % (name, tenant.id))
         return tenant
 
     def create_user(self, name, password, tenant_name, **kwargs):
@@ -31,26 +31,24 @@ class SimpleKeystoneClient:
             user = self.ks_client.users.find(name=name)
             logger.warning('User %s exists (password unchanged).' % name)
         except NotFound:
-            tenant = self.create_tenant(tenant_name)
             user = self.ks_client.users.create(name=name, password=password,
                                                tenant_id=tenant.id, **kwargs)
-            #logger.info('User %s created.' % name)
+            logger.info('User %s created.' % name)
         return user
 
     def create_role(self, role_name, **kwargs):
         try:
             role = self.ks_client.roles.find(name=role_name)
-            #logger.info('Role %s exists.' % role_name)
+            logger.info('Role %s exists.' % role_name)
         except NotFound:
             role = self.ks_client.roles.create(role_name, **kwargs)
-            #logger.info('Role %s created.' % role_name)
+            logger.info('Role %s created.' % role_name)
         return role
 
     def add_user_role(self, user, role, tenant, **kwargs):
         try:
             self.ks_client.roles.add_user_role(user, role, tenant, **kwargs)
-            #logger.info('Role given to user.')
+            logger.info('Role given to user.')
         except Conflict:
-            pass
-            #logger.info('User already has the requested role.')
+            logger.info('User already has the requested role.')
 

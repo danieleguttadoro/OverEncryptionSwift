@@ -6,7 +6,7 @@ from swift.common.wsgi import WSGIContext
 from swift.common.swob import wsgify
 
 #To use encswift
-from catalogue import *
+from catalog_manager import *
 from connection import *
 from keystoneclient import session
 from keystoneclient.v2_0 import client as kc
