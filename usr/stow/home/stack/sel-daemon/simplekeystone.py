@@ -2,14 +2,8 @@
 
 from keystoneclient.exceptions import NotFound, Conflict
 import keystoneclient.v2_0.client as kc
-import logging
 
-# set logger info to INFO
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-logger.addHandler(ch)
+from myLogger import *
 
 class SimpleKeystoneClient:
 
@@ -29,7 +23,7 @@ class SimpleKeystoneClient:
     def create_user(self, name, password, tenant_name, **kwargs):
         try:
             user = self.ks_client.users.find(name=name)
-            logger.warning('User %s exists (password unchanged).' % name)
+            logger.info('User %s exists (password unchanged).' % name)
         except NotFound:
             user = self.ks_client.users.create(name=name, password=password,
                                                tenant_id=tenant.id, **kwargs)

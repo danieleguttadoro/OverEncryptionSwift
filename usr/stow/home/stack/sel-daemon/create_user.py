@@ -19,13 +19,6 @@ class CreateUser:
         admin_role = self.client.ks_client.roles.find(name="admin")
         us_role = self.client.ks_client.roles.find(name=self.role)
 
-        ##TO EXECUTE DURING THE DAEMON CREATION
-        # Create meta-tenant
-        meta_tenant = self.client.create_tenant(name=self.meta_tenant)
-        # Create user tenant
-        tenant = self.client.create_tenant(name=self.tenant)
-        ##
-
         # Create user
         user = self.client.create_user(self.user, self.password, self.tenant)
         

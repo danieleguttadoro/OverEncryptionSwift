@@ -1,5 +1,3 @@
-import logging
-
 from catalog_manager import *
 from connection import *
 from create_user import CreateUser
@@ -12,8 +10,9 @@ from keystoneclient.v2_0 import client as kc
 import swiftclient
 
 from flask import *
-
 app = Flask(__name__)
+
+from myLogger import *
   
 BLOCK_SIZE = 16
 
@@ -23,19 +22,19 @@ def update_req():
         idkey = request.headers['id']
         obj = json.loads(request.data)
         update_catalogue(receiver, idkey, obj)
-        #logging.info('OK: receiver %s, idkey %s' % (receiver,idkey))
+        logger.info('OK: receiver %s, idkey %s' % (receiver,idkey))
         return Response(status=200)
     except Exception,err:
-        #logging.warning('Exception: %s' % err)
+        logger.debug('Error in update catalog. Exception: %s' % err)
         return Response(status=304)
 
 
 def create_req():                                                     
     if request.method == 'GET':
-        #logging.info('OK: send public_key')
+        logger.info('Get request received. Send public_key')
         resp = Response(get_publicKey())
         return resp
-        #eeturn Response(get_publicKey(),status=200)
+
     elif request.method == 'PUT':
         
         username, encpass, client_pubKey = request.data.split('#')
@@ -43,23 +42,18 @@ def create_req():
 
         CreateUser(username,password,TENANT_NAME,META_TENANT,'Member',AUTH_URL).start()
 
-        suid = getUserID(username)
-        myid = getUserID(ADMIN_USER)
-        create_catalog(suid,myid)
+        userid = getUserID(username)
+        daemonid = getUserID(ADMIN_USER)
+        create_catalog(userid,daemonid)
 
-        swift_conn = swiftclient.client.Connection(user=ADMIN_USER,
-                                                   key=ADMIN_KEY,
-                                                   tenant_name=META_TENANT,
-                                                   authurl=AUTH_URL,
-                                                   auth_version='2.0')
-        swift_conn.put_object("Keys", suid, client_pubKey)
+        meta_conn.put_object("Keys", userid, client_pubKey)
 
 
-        #logging.info('OK: create user')
-        resp = Response(suid)
-        return resp
+        logger.info('User correctly created')
+        return Response(userid)
+
     else:
-        #logging.warning('ERROR: on create_req function')
+        logger.warning('ERROR: on create_req function')
         return Response(status=400)
 
 def get_masterKey():    
@@ -103,13 +97,13 @@ def get_privateKey():
 
 
 def getUserID(username):
-        """
-        Get the user's ID from Keystone
-        """
-        # Requires an admin connection
-        kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_KEY, tenant_name=TENANT_NAME, auth_url=AUTH_URL)
-        this_user = filter(lambda x: x.username == username, kc_conn.users.list())
-        return this_user[0].id
+    """
+    Get the user's ID from Keystone
+    """
+    # Requires an admin connection
+    kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_KEY, tenant_name=TENANT_NAME, auth_url=AUTH_URL)
+    this_user = filter(lambda x: x.username == username, kc_conn.users.list())
+    return this_user[0].id
 
 def decrypt(secret):
     """
@@ -126,11 +120,12 @@ def decrypt(secret):
 @app.route("/<mode>",methods=['GET','PUT'])
 def start(mode):
     #logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    if mode == "update" and request.method == "PUT":
+    
+    if mode is "update" and request.method is "PUT":
        return update_req()
-    if mode == "create":
+    if mode is "create":
        return create_req()
-    if mode == "get_id" and request.method == "PUT":
+    if mode is "get_id" and request.method is "PUT":
        return Response(getUserID(request.data))
 
 if __name__ == "__main__":
