@@ -53,7 +53,7 @@ def create_req():
         return Response(userid)
 
     else:
-        logger.warning('ERROR: on create_req function')
+        logger.error('On create_req function')
         return Response(status=400)
 
 def get_masterKey():    
@@ -103,7 +103,9 @@ def getUserID(username):
     # Requires an admin connection
     kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_KEY, tenant_name=TENANT_NAME, auth_url=AUTH_URL)
     this_user = filter(lambda x: x.username == username, kc_conn.users.list())
-    return this_user[0].id
+    if this_user:
+        return this_user[0].id
+    return ""
 
 def decrypt(secret):
     """
@@ -170,11 +172,11 @@ def gen_keypair(self, bits):
 def start(mode):
     #logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     
-    if mode is "update" and request.method is "PUT":
+    if mode == "update" and request.method == "PUT":
        return update_req()
-    if mode is "create":
+    if mode == "create":
        return create_req()
-    if mode is "get_id" and request.method is "PUT":
+    if mode == "get_id" and request.method == "PUT":
        return Response(getUserID(request.data))
 
 if __name__ == "__main__":

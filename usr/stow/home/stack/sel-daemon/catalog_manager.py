@@ -25,13 +25,15 @@ def create_catalog(usrID, daemonID):
     # Create meta-container
     try:
         meta_conn.put_container(CatContainer, headers=None)
-        logger.debug("Meta-container %s put" % CatContainer)
+        logging.debug("Meta-container %s put" % CatContainer)
     except:
         logger.debug('Error while putting the meta-container %s' % CatContainer)
         
     # Add ACL for this user to the meta-container
+    print usrID
+    print "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
     cntr_headers = {}
-    cntr_headers['x-container-read'] = ','.join([usrID,daemonID])
+    cntr_headers['x-container-read'] = ','.join([str(usrID),str(daemonID)])
     cntr_headers['x-container-write']= daemonID
     try:
         meta_conn.post_container(CatContainer, headers=cntr_headers)

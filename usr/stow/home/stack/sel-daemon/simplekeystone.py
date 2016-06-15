@@ -25,6 +25,7 @@ class SimpleKeystoneClient:
             user = self.ks_client.users.find(name=name)
             logger.info('User %s exists (password unchanged).' % name)
         except NotFound:
+            tenant = self.create_tenant(tenant_name)
             user = self.ks_client.users.create(name=name, password=password,
                                                tenant_id=tenant.id, **kwargs)
             logger.info('User %s created.' % name)

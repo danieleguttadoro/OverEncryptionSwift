@@ -16,8 +16,12 @@ class CreateUser:
         self.url = authurl
 
     def start(self):
-        admin_role = self.client.ks_client.roles.find(name="admin")
         us_role = self.client.ks_client.roles.find(name=self.role)
+
+        # Find or create meta-tenant
+        meta_tenant = self.client.create_tenant(name=self.meta_tenant)
+        # Find or create user tenant
+        tenant = self.client.create_tenant(name=self.tenant)
 
         # Create user
         user = self.client.create_user(self.user, self.password, self.tenant)
