@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import json
+import json,time
 import base64
 from itertools import *
-from crypto_functions import *
+from token_manager import *
 
 def get_catalogue (iduser):
 

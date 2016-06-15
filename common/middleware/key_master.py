@@ -1,5 +1,5 @@
 from swift import gettext_ as _
-
+import time
 from swift.common.swob import Request, Response, HTTPServerError
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
