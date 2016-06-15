@@ -115,6 +115,55 @@ def decrypt(secret):
     receiver_priv_key = RSA.importKey(get_privateKey())
     return receiver_priv_key.decrypt(b64decode(secret))
 
+def generate_swiftKeys(self, force=False):
+    """
+    Generate a RSA keypair for the new user, then save them locally (TODO: on barbican?)
+    The private RSA key must be encrypted before being stored.
+    Also store an AES masterkey (TODO: deprecate this point)
+    """
+
+    BLOCK_SIZE = 16
+
+    pvtK, pubK = self.gen_keypair(1024)
+    pvk_filename = "/opt/stack/swift/swift/common/middleware/pvt.key"
+    puk_filename = "/opt/stack/swift/swift/common/middleware/pub.key"
+    mk_filename = "/opt/stack/swift/swift/common/middleware/mk.key"
+
+    if not force:
+        if (os.path.exists(pvk_filename) or os.path.exists(puk_filename)):
+            logger.warning("Warning: User keys already exist")
+            return
+
+    master_key = os.urandom(BLOCK_SIZE)
+    with open(mk_filename, 'w') as mk_file:
+        mk_file.write(base64.b64encode(master_key))
+        logger.info("Generated and Stored AES MasterKey.")
+
+    # Generate and store RSA keys
+    with open(pvk_filename, "w") as pvk_file:
+        pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
+        pvtK = pad(pvtK)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(master_key, AES.MODE_CBC, iv)
+        pvk_file.write(base64.b64encode(iv + cipher.encrypt(pvtK)))
+        logger.info("Generated and Stored RSA private key.")
+
+    with open(puk_filename, "w") as puk_file:
+        puk_file.write(pubK)
+        logger.info("Generated and Stored RSA public key.")
+    
+    return pubK
+
+def gen_keypair(self, bits):
+    """
+    Generate an RSA keypair with an exponent of 65537 in PEM format
+    param: bits The key length in bits
+    """
+    new_key = RSA.generate(bits, e=65537)
+    public_key = new_key.publickey().exportKey("PEM")
+    private_key = new_key.exportKey("PEM")
+    return private_key, public_key
+                                                                                       
 
 
 @app.route("/<mode>",methods=['GET','PUT'])

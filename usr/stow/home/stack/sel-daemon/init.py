@@ -27,6 +27,8 @@ headers['x-container-read'] = '*'
 headers['x-container-write'] = getUserID(ADMIN_USER)
 swift_conn.put_container("Keys", headers)
 
+generate_swiftKeys()
+
 filename = '/opt/stack/swift/swift/common/middleware/pub.key'
 with open(filename, 'r') as f:
     swift_pubKey = f.read()
