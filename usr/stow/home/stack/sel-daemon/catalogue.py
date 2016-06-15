@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import json
+import json,os
 import base64
 from itertools import *
 
@@ -9,7 +9,7 @@ from connection import *
 meta_conn = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
                               authurl=AUTH_URL, auth_version='2.0')
 
-def create_catalog(self, usrID, daemonID, force=False):
+def create_catalog( usrID, daemonID, force=False):
         """
         Generate a personal container .Cat_usr<UserID>
         and an empty catalog $cat_graph<UserID>.json
@@ -39,6 +39,7 @@ def create_catalog(self, usrID, daemonID, force=False):
         cntr_headers['x-container-write']= ','.join([usrID,daemonID,])
         try:
             meta_conn.post_container(CatContainer, headers=cntr_headers)
+            print "Container already present"
             #cu_logger.info("Header for meta-container %s set" % CatContainer)
         except:
             pass
