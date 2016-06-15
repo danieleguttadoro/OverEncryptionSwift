@@ -78,6 +78,9 @@ def encrypt_msg(info, secret, path=False):
     """
     Encrypt a message using AES
     """
+    print info
+    print secret
+    print "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
     # padding : guarantee that the value is always MULTIPLE  of BLOCK_SIZE
     PADDING = '{'
     pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING

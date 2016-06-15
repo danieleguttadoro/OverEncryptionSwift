@@ -22,21 +22,24 @@ class CreateUser:
         admin_role = self.client.ks_client.roles.find(name="admin")
         # Get user role
         us_role = self.client.ks_client.roles.find(name=self.role)
+
+        ##TO EXECUTE DURING THE DAEMON CREATION
         # Create meta-tenant
         meta_tenant = self.client.create_tenant(name=self.meta_tenant)
         # Create user tenant
         tenant = self.client.create_tenant(name=self.tenant)
+        ##
+
         # Create user
         user = self.client.create_user(self.user, self.password, self.tenant)
+        
         # Set role to the user
         self.client.add_user_role(user, us_role, tenant)
+        self.client.add_user_role(user, us_role, meta_tenant)
+
+        ##TO EXECUTE DURING THE ENCADMIN CREATION
         # Add admin users to the meta-tenant
         if us_role == admin_role:
             self.client.add_user_role(user, us_role, meta_tenant)
+        ##
 
-        # Escudo Meta-User Properties
-        # Generate the catalogs
-        #self.emup = EscudoMetaUserProperties(name=self.user, password=self.password,
-        #                                     meta_tenant_name=self.meta_tenant, authurl=self.url)
-        #self.emup.create_catalog()
-        #self.emup.generate_keys()

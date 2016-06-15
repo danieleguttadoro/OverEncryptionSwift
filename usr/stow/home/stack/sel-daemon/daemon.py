@@ -44,13 +44,16 @@ def create_req():
         CreateUser(username,password,TENANT_NAME,META_TENANT,'Member',AUTH_URL).start()
 
         suid = getUserID(username)
- 
+        myid = getUserID(ADMIN_USER)
+        create_catalog(suid,myid)
+
         swift_conn = swiftclient.client.Connection(user=ADMIN_USER,
                                                    key=ADMIN_KEY,
                                                    tenant_name=META_TENANT,
                                                    authurl=AUTH_URL,
                                                    auth_version='2.0')
         swift_conn.put_object("Keys", suid, client_pubKey)
+
 
         #logging.info('OK: create user')
         resp = Response(suid)

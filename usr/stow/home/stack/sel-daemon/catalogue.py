@@ -9,6 +9,64 @@ from connection import *
 meta_conn = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
                               authurl=AUTH_URL, auth_version='2.0')
 
+def create_catalog(self, usrID, daemonID, force=False):
+        """
+        Generate a personal container .Cat_usr<UserID>
+        and an empty catalog $cat_graph<UserID>.json
+        Args:
+            usrID: user's Keystone ID
+            PARAM 'force': force the creation of new keys and reset the catalog
+        """
+        CatContainer = '.Cat_usr%s' % usrID
+        CatSource = '$cat_graph%s.json' % usrID
+
+        if not force:
+            if os.path.exists(CatSource):
+                cu_logger.error("ENV_ERR User_props already exists")
+                return
+        
+        # Create meta-container
+        try:
+            meta_conn.put_container(CatContainer, headers=None)
+            #cu_logger.info("Meta-container %s put" % CatContainer)
+        except:
+            pass
+            #cu_logger.error('Error while putting the meta-container %s' % CatContainer)
+        
+        # Add ACL for this user to the meta-container
+        cntr_headers = {}
+        cntr_headers['x-container-read'] = ','.join([usrID,daemonID])
+        cntr_headers['x-container-write']= ','.join([usrID,daemonID,])
+        try:
+            meta_conn.post_container(CatContainer, headers=cntr_headers)
+            #cu_logger.info("Header for meta-container %s set" % CatContainer)
+        except:
+            pass
+            #cu_logger.error('Error while setting the meta-container %s header' % CatContainer)
+
+        # Create catalog       
+        try:
+            meta_conn.put_object(CatContainer, CatSource, json.dumps({}, indent=4, sort_keys=True), content_type='application/json')
+            #cu_logger.info("Catalog %s put in meta-container" % CatSource)
+        except:
+            pass
+            #cu_logger.error('Error while putting the catalog %s' % CatSource)
+
+        # Post header Label via STD post_object
+        obj_headers = {}
+        obj_headers['x-container-read'] =  ','.join([usrID,daemonID])
+        obj_headers['x-container-write']=  ','.join([usrID,daemonID])
+        try:
+            meta_conn.post_object(CatContainer, CatSource, headers=obj_headers)
+            #cu_logger.info("Header for catalog %s set" % CatSource)
+        except:
+            pass
+            #cu_logger.error('Error setting catalog %s header' % CatSource)
+
+        #cu_logger.info("Generated and Stored personal catalog.")
+        return
+
+
 def get_catalogue (iduser):
 
     """
