@@ -3,11 +3,11 @@ AUTH_PORT  = '5052'
 DAEMON_URL = 'http://193.204.253.59:8089'
 DAEMON_PORT= '8089'
 
-TENANT_NAME = 'encswift'
+TENANT_NAME = 'demo'
 META_TENANT = 'meta_encswift'
 
-ADMIN_USER = 'encadmin'
-ADMIN_KEY = 'encadmin!'
+ADMIN_USER = 'admin'
+ADMIN_KEY = 'secretsecret'
 
 USER = 'enctest'
 USER_A = 'enctest1'
