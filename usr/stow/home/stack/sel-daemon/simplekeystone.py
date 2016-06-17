@@ -3,10 +3,12 @@
 from keystoneclient.exceptions import NotFound, Conflict
 import keystoneclient.v2_0.client as kc
 
-from myLogger import *
+from logs.myLogger import *
 
 class SimpleKeystoneClient:
-
+    """
+    Add enc functions to creation request 
+    """
     def __init__(self, admin_user, admin_pass, admin_tenant, auth_url):
         self.ks_client = kc.Client(username=admin_user, password=admin_pass,
                                    tenant_name=admin_tenant, auth_url=auth_url)

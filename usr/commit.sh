@@ -9,7 +9,7 @@ sudo git checkout $branch
 cat /opt/stack/swift/swift/common/middleware/key_master.py | sudo tee /home/stack/swift/common/middleware/key_master.py
 cat /opt/stack/swift/swift/common/middleware/encrypt.py | sudo tee /home/stack/swift/common/middleware/encrypt.py
 cat /opt/stack/swift/swift/common/middleware/catalog_manager.py | sudo tee /home/stack/swift/common/middleware/catalog_manager.py
-cat /opt/stack/swift/swift/common/middleware/token_manager.py | sudo tee /home/stack/swift/common/middleware/token_manager.py
+cat /opt/stack/swift/swift/common/middleware/key_manager.py | sudo tee /home/stack/swift/common/middleware/key_manager.py
 cat /opt/stack/swift/swift/common/middleware/connection.py | sudo tee /home/stack/swift/common/middleware/connection.py
 cat /opt/stack/swift/swift/common/middleware/mk.key | sudo tee /home/stack/swift/common/middleware/mk.key
 cat /opt/stack/swift/swift/common/middleware/pub.key | sudo tee /home/stack/swift/common/middleware/pub.key

@@ -6,7 +6,7 @@ from itertools import *
 from swiftclient import client
 from connection import *
 
-from myLogger import *
+from logs.myLogger import *
 
 meta_conn = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
                               authurl=AUTH_URL, auth_version='2.0')
@@ -17,7 +17,7 @@ def create_catalog(usrID, daemonID):
     and an empty catalog $cat_graph<UserID>.json
     Args:
         usrID: user's Keystone ID
-        PARAM 'force': force the creation of new keys and reset the catalog
+        daemonID: admin daemon's ID
     """
     CatContainer = '.Cat_usr%s' % usrID
     CatSource = '$cat_graph%s.json' % usrID
@@ -30,8 +30,6 @@ def create_catalog(usrID, daemonID):
         logger.debug('Error while putting the meta-container %s' % CatContainer)
         
     # Add ACL for this user to the meta-container
-    print usrID
-    print "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
     cntr_headers = {}
     cntr_headers['x-container-read'] = ','.join([str(usrID),str(daemonID)])
     cntr_headers['x-container-write']= daemonID
@@ -50,10 +48,13 @@ def create_catalog(usrID, daemonID):
 
     return
 
-def get_catalogue (iduser):
-
+def get_catalog (iduser):
     """
     Get the catalog from the meta-container
+    Args:
+        iduser: The user id 
+    Returns:
+        json_data_catalog: User catalog (json format)
     """
     CatContainer = '.Cat_usr%s' % iduser
     CatSource = '$cat_graph%s.json' % iduser
@@ -64,8 +65,13 @@ def get_catalogue (iduser):
         json_data_catalog = '{err}'
     return json_data_catalog
 
-def put_catalogue (iduser, cat): #create_catalogue == put_catalogue (iduser, {})
-
+def put_catalog (iduser, cat): #create_catalog == put_catalog (iduser, {})
+    """
+    Upload the catalog into the meta-container
+    Args: 
+        iduser: The user id
+        cat: User catalog stored in the meta-container
+    """
     CatContainer = '.Cat_usr%s' % iduser
     CatSource = '$cat_graph%s.json' % iduser
     try:
@@ -74,33 +80,32 @@ def put_catalogue (iduser, cat): #create_catalogue == put_catalogue (iduser, {})
     except:
         logger.debug('Error while putting the catalog %s' % CatSource)
 
-def load_catalogue(iduser):
-
-    cat = get_catalogue(iduser)
+def load_catalog(iduser):
+    """
+    Load the catalog (json format) into the cat variable
+    Args:
+        iduser: The user id
+    Returns:
+        cat: The user catalog in json format 
+    """
+    cat = get_catalog(iduser)
     return json.loads(cat)
 
-def update_catalogue (iduser, idkey, obj):
-
-    hash_map = load_catalogue(iduser)
+def update_catalog (iduser, idkey, obj):
+    """
+    Add a new KEK (obj) into the catalog
+    Upload the new version catalog
+    Args:
+        iduser: The user id
+        idkey: The DEK id
+        obj: The new KEK
+    """
+    hash_map = load_catalog(iduser)
     
     if obj:
         hash_map[idkey] = obj
     else: 
         del hash_map[idkey]
 
-    put_catalogue(iduser, json.dumps(hash_map, indent=4, sort_keys=True))
-
-def get_cat_crypto_node (iduser, idkey):
-
-    hash_map = load_catalogue(iduser)
-    return hash_map.get(idkey,{})
-
-def create_node (iduser, idcontainer):
-
-    idkey, token = generate_container_key()
-    obj = {}
-    obj['TOKEN'] = base64.b64encode(token)
-    obj['IDCONTAINER'] = idcontainer
-    obj['OWNERTOKEN'] = iduser
-    return idkey, obj # clear token in obj
+    put_catalog(iduser, json.dumps(hash_map, indent=4, sort_keys=True))
 

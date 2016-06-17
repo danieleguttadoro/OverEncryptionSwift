@@ -12,16 +12,21 @@ import swiftclient
 from flask import *
 app = Flask(__name__)
 
-from myLogger import *
+from logs.myLogger import *
   
 BLOCK_SIZE = 16
 
-def update_req():                                                     
+def update_req():                                                 
+    """
+    Update request to update the user's catalog
+    """    
     try:                                                              
+        #Obtain info about receiver, DEK id and the object to put into the catalog
         receiver = request.headers['receiver']
         idkey = request.headers['id']
         obj = json.loads(request.data)
-        update_catalogue(receiver, idkey, obj)
+        #Update the catalog with new KEK included
+        update_catalog(receiver, idkey, obj)
         logger.info('OK: receiver %s, idkey %s' % (receiver,idkey))
         return Response(status=200)
     except Exception,err:
@@ -29,23 +34,28 @@ def update_req():
         return Response(status=304)
 
 
-def create_req():                                                     
+def create_req():                       
+    """
+    Create new user request
+    Sends the daemon public key for a secure password exchange  
+    Create the new user and its new catalog, returning the user id
+    """                              
     if request.method == 'GET':
+        #Send the public key to the user to obtain a secure connection
         logger.info('Get request received. Send public_key')
         resp = Response(get_publicKey())
         return resp
-
     elif request.method == 'PUT':
-        
+        #Receive username, password (ciphered) and user's public key
         username, encpass, client_pubKey = request.data.split('#')
         password = decrypt(encpass)
-
+        #Create the new user
         CreateUser(username,password,TENANT_NAME,META_TENANT,'Member',AUTH_URL).start()
-
+        #Create user's meta catalog
         userid = getUserID(username)
         daemonid = getUserID(ADMIN_USER)
         create_catalog(userid,daemonid)
-
+        #Put the public key into meta-container Keys
         meta_conn.put_object("Keys", userid, client_pubKey)
 
 
@@ -105,7 +115,7 @@ def getUserID(username):
     this_user = filter(lambda x: x.username == username, kc_conn.users.list())
     if this_user:
         return this_user[0].id
-    return ""
+    return 0
 
 def decrypt(secret):
     """
@@ -119,9 +129,9 @@ def decrypt(secret):
 
 def generate_swiftKeys(self, force=False):
     """
-    Generate a RSA keypair for the new user, then save them locally (TODO: on barbican?)
+    Generate a RSA keypair for the swift user, then save them locally
     The private RSA key must be encrypted before being stored.
-    Also store an AES masterkey (TODO: deprecate this point)
+    Also store an AES masterkey
     """
 
     BLOCK_SIZE = 16
@@ -173,11 +183,14 @@ def start(mode):
     #logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     
     if mode == "update" and request.method == "PUT":
-       return update_req()
+        #Update request to insert a new KEK in the catalogs
+        return update_req()
     if mode == "create":
-       return create_req()
+        #Create request to create a new user
+        return create_req()
     if mode == "get_id" and request.method == "PUT":
-       return Response(getUserID(request.data))
+        #get_id request to get a specific user's id
+        return Response(getUserID(request.data))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(DAEMON_PORT))

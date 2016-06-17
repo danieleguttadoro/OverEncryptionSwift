@@ -1,10 +1,9 @@
 from swift import gettext_ as _
-import time
 from swift.common.swob import Request, Response, HTTPServerError
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
 from swift.common.swob import wsgify
-
+import time
 #To use encswift
 from catalog_manager import *
 from connection import *
@@ -18,7 +17,7 @@ class key_master(WSGIContext):
         Get the user's ID from Keystone
         """
         # Requires an admin connection
-        kc_conn = kc.Client(username=ADMIN, password=AD_KEY, tenant_name=ADMIN_TENANT, auth_url=AUTH_URL)
+        kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_KEY, tenant_name=TENANT_NAME, auth_url=AUTH_URL)
         this_user = filter(lambda x: x.username == self.name, kc_conn.users.list())
         return this_user[0].id
 
@@ -31,14 +30,10 @@ class key_master(WSGIContext):
     def __call__(self, env, start_response):
         
         req = Request(env)
-        
         username   = env.get('HTTP_X_USER_NAME',None)
         userid     = env.get('HTTP_X_USER_ID',None)
-       
-        #COMMENT: Control the author of the request. DA AGGIUNGERE IL CONTROLLO SULL'ID DEL CEILOMETER(OMONOMIA con un utente)
-        if req.method == "GET" and username != "ceilometer" and username != "encadmin" and username != "admin" and username != None:
-            print "----------------- KEY_MASTER -----------------------"
-            print ("Current User : %s" % username)
+        #COMMENT: Control the author of the request. 
+        if req.method == "GET" and username != "ceilometer" and username != "admin" and username != None:
             version, account, container, obj = req.split_path(1,4,True)
             if obj != None:
                 new_req = Request.blank(req.path_info,None,req.headers,None)
@@ -46,16 +41,16 @@ class key_master(WSGIContext):
                 new_req.path_info = "/".join(["",version,account,container])
                 response = new_req.get_response(self.app)
                 cont_header = response.headers
-                sel_id_key_container = cont_header.get('x-container-meta-sel-id',"")
-                if sel_id_key_container is not "":
+                container_sel_id = cont_header.get('x-container-meta-sel-id',None)
+                if container_sel_id is not None:
                     resp_obj = req.get_response(self.app)
-                    sel_id_key_object = resp_obj.headers.get('x-object-meta-sel-id',"")
-                    if sel_id_key_object != sel_id_key_container:
-                        token = get_cat_obj(self.userID, sel_id_key_container).get('TOKEN',None)
-                        if token is not None:
-                            env['swift_crypto_fetch_token'] = token
+                    object_sel_id = resp_obj.headers.get('x-object-meta-sel-id',None)
+                    if object_sel_id != container_sel_id:
+                        dek = get_cat_node(self.userID,container_sel_id).get('KEK',None)
+                        if dek is not None:
+                            env['swift_crypto_fetch_key'] = dek
                         else:
-                            env['swift_crypto_fetch_token'] = "TrPhase"
+                            env['swift_crypto_fetch_key'] = "TrPhase"
         return self.app(env, start_response)
 
 def filter_factory(global_conf, **local_conf):

@@ -7,7 +7,7 @@ from swift.common.wsgi import WSGIContext
 from swift.proxy.controllers.container import ContainerController
 from swift.proxy.controllers.base import get_container_info
 
-from token_manager import *
+from key_manager import *
 
 class encrypt(WSGIContext):
 
@@ -21,14 +21,12 @@ class encrypt(WSGIContext):
         env = req.environ
         username = env.get('HTTP_X_USER_NAME',None)
         
-        if req.method == "GET" and username!= 'ceilometer' and username != 'admin' and username != 'encadmin' and username != None:               
-            print "----------------- ENCRYPT -----------------------"
-            print ("Current User: %s" % username)
-            token = req.environ.get('swift_crypto_fetch_token',None)       
-            if token != None:
-                if token == "TrPhase":
+        if req.method == "GET" and username!= 'ceilometer' and username != 'admin' and username != None:               
+            dek = req.environ.get('swift_crypto_fetch_key',None)       
+            if dek != None:
+                if dek == "TrPhase":
                   return Response(request=req, status=403, body="Transient Phase", content_type="text/plain")
-                resp.body = encrypt_msg(str(resp.body),token) 
+                resp.body = encrypt_msg(str(resp.body),dek) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 resp.content_length = len(resp.body)  
         return resp
