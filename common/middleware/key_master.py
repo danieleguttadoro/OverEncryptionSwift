@@ -2,7 +2,7 @@ from swift import gettext_ as _
 from swift.common.swob import Request, Response, HTTPServerError
 from swift.common.utils import get_logger, generate_trans_id
 from swift.common.wsgi import WSGIContext
-from swift.common.swob import wsgify
+from swift.common.swob import wsgify,HTTPUnauthorized
 import time
 #To use encswift
 from catalog_manager import *
@@ -32,9 +32,20 @@ class key_master(WSGIContext):
         req = Request(env)
         username   = env.get('HTTP_X_USER_NAME',None)
         userid     = env.get('HTTP_X_USER_ID',None)
+        version, account, container, obj = req.split_path(1,4,True)
         #COMMENT: Control the author of the request. 
+        if req.method == "PUT" and req.headers.get('x-container-read',None) is not None and  container is not None and obj is None:
+                req.headers['x-container-sysmeta-owner'] = userid
+        if req.method =="POST" and req.headers.get('x-container-read',None) is not None:
+                new_req = Request.blank(req.path_info,None,req.headers,None)
+                new_req.method = "HEAD"
+                new_req.path_info = "/".join(["",version,account,container])
+                new_resp = new_req.get_response(self.app) 
+                if new_resp.headers.get('x-container-meta-bel-id',None) is None:
+                    req.headers['x-container-sysmeta-owner'] = userid
+                elif new_resp.headers.get('x-container-sysmeta-owner',None) != userid:
+                    return HTTPUnauthorized(body="Unauthorized")(env, start_response)
         if req.method == "GET" and username != "ceilometer" and username != "admin" and username != None:
-            version, account, container, obj = req.split_path(1,4,True)
             if obj != None:
                 new_req = Request.blank(req.path_info,None,req.headers,None)
                 new_req.method = "HEAD"
@@ -50,7 +61,7 @@ class key_master(WSGIContext):
                         if dek is not None:
                             env['swift_crypto_fetch_key'] = dek
                         else:
-                            env['swift_crypto_fetch_key'] = "TrPhase"
+                            env['swift_crypto_fetch_key'] = "NotAuthorized"
         return self.app(env, start_response)
 
 def filter_factory(global_conf, **local_conf):

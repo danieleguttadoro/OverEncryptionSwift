@@ -24,8 +24,8 @@ class encrypt(WSGIContext):
         if req.method == "GET" and username!= 'ceilometer' and username != 'admin' and username != None:               
             dek = req.environ.get('swift_crypto_fetch_key',None)       
             if dek != None:
-                if dek == "TrPhase":
-                  return Response(request=req, status=403, body="Transient Phase", content_type="text/plain")
+                if dek == "NotAuthorized":
+                  return Response(request=req, status=401, content_type="text/plain")
                 resp.body = encrypt_msg(str(resp.body),dek) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 resp.content_length = len(resp.body)  
