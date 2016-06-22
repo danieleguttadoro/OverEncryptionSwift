@@ -36,14 +36,17 @@ class key_master(WSGIContext):
         #COMMENT: Control the author of the request. 
         if req.method == "PUT" and req.headers.get('x-container-read',None) is not None and  container is not None and obj is None:
                 req.headers['x-container-sysmeta-owner'] = userid
+                print "PUTRRRRRRRRRRRRRRRRRRRRRRRRRRR"
         if req.method =="POST" and req.headers.get('x-container-read',None) is not None:
                 new_req = Request.blank(req.path_info,None,req.headers,None)
                 new_req.method = "HEAD"
                 new_req.path_info = "/".join(["",version,account,container])
                 new_resp = new_req.get_response(self.app) 
                 if new_resp.headers.get('x-container-meta-bel-id',None) is None:
+                    print "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS"
                     req.headers['x-container-sysmeta-owner'] = userid
                 elif new_resp.headers.get('x-container-sysmeta-owner',None) != userid:
+                    print "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
                     return HTTPUnauthorized(body="Unauthorized")(env, start_response)
         if req.method == "GET" and username != "ceilometer" and username != "admin" and username != None:
             if obj != None:

@@ -117,6 +117,15 @@ def getUserID(username):
         return this_user[0].id
     return 0
 
+def getUsername(userid):
+    """
+    Get the user's ID from Keystone
+    """
+    # Requires an admin connection
+    kc_conn = kc.Client(username=ADMIN_USER, password=ADMIN_KEY, tenant_name=TENANT_NAME, auth_url=AUTH_URL)
+    username = kc_conn.users.get(userid).username
+    return username
+
 def decrypt(secret):
     """
     Decipher the information sent by the client.
@@ -191,6 +200,9 @@ def start(mode):
     if mode == "get_id" and request.method == "PUT":
         #get_id request to get a specific user's id
         return Response(getUserID(request.data))
+    if mode == "get_name" and request.method == "PUT":
+        #get_name request to get a specific username
+        return Response(getUsername(request.data))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(DAEMON_PORT))
