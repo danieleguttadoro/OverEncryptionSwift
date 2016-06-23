@@ -58,7 +58,8 @@ def get_node(cat,iduser,idkey):
     node = cat.get(idkey,{})
     if node:
         dek = decrypt_KEK(secret=base64.b64decode('%s' % node['KEK']),
-                                          sender=node['OWNERID'],receiver=iduser)
+                          signature=base64.b64decode('%s' % node['SIGNATURE']),
+                          sender=node['OWNERID'],receiver=iduser)
         node['KEK'] = dek
     return node # return a clear node
 
