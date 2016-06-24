@@ -62,7 +62,7 @@ def get_catalog (iduser):
         hdrs, json_data_catalog = meta_conn.get_object(CatContainer, CatSource)
     except: 
         logger.debug("Error while getting catalog %s in meta-container" % CatSource)
-        json_data_catalog = '{err}'
+        json_data_catalog = '{}'
     return json_data_catalog
 
 def put_catalog (iduser, cat): #create_catalog == put_catalog (iduser, {})

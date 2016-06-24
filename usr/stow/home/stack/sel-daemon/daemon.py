@@ -29,8 +29,8 @@ def update_req():
         update_catalog(receiver, idkey, obj)
         logger.info('OK: receiver %s, idkey %s' % (receiver,idkey))
         return Response(status=200)
-    except Exception,err:
-        logger.debug('Error in update catalog. Exception: %s' % err)
+    except:
+        logger.debug('Error in update catalog.')
         return Response(status=304)
 
 

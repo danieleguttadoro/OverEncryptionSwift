@@ -24,7 +24,7 @@ class key_master(WSGIContext):
     def __init__(self,app, conf):
         self.app = app
         self.conf = conf
-        self.name = "swift"
+        self.name = SWIFT_USER
         self.userID = self.getUserID()
 
     def __call__(self, env, start_response):
@@ -35,6 +35,7 @@ class key_master(WSGIContext):
         version, account, container, obj = req.split_path(1,4,True)
         #COMMENT: Control the author of the request. 
         if req.method == "PUT" and req.headers.get('x-container-read',None) is not None and  container is not None and obj is None:
+                #Associate owner to container
                 req.headers['x-container-sysmeta-owner'] = userid
         if req.method =="POST" and req.headers.get('x-container-read',None) is not None:
                 new_req = Request.blank(req.path_info,None,req.headers,None)
@@ -42,11 +43,14 @@ class key_master(WSGIContext):
                 new_req.path_info = "/".join(["",version,account,container])
                 new_resp = new_req.get_response(self.app) 
                 if new_resp.headers.get('x-container-meta-bel-id',None) is None:
+                    #Container public -> private. Associate owner
                     req.headers['x-container-sysmeta-owner'] = userid
                 elif new_resp.headers.get('x-container-sysmeta-owner',None) != userid:
+                    #Container already private and user is not the owner
                     return HTTPUnauthorized(body="Unauthorized")(env, start_response)
         if req.method == "GET" and username != "ceilometer" and username != None:
             if obj != None:
+                #Request a container
                 new_req = Request.blank(req.path_info,None,req.headers,None)
                 new_req.method = "HEAD"
                 new_req.path_info = "/".join(["",version,account,container])
@@ -54,13 +58,16 @@ class key_master(WSGIContext):
                 cont_header = response.headers
                 container_sel_id = cont_header.get('x-container-meta-sel-id',None)
                 if container_sel_id is not None:
+                    #Sel applied. Necessary to encrypt
                     resp_obj = req.get_response(self.app)
                     object_sel_id = resp_obj.headers.get('x-object-meta-sel-id',None)
                     if object_sel_id != container_sel_id:
+                        #The object has been uploaded before the last policy change
                         dek = get_cat_node(self.userID,container_sel_id).get('KEK',None)
                         if dek is not None:
                             env['swift_crypto_fetch_key'] = dek
                         else:
+                            #Transient phase 
                             env['swift_crypto_fetch_key'] = "NotAuthorized"
         return self.app(env, start_response)
 

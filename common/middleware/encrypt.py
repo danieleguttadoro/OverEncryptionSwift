@@ -21,11 +21,13 @@ class encrypt(WSGIContext):
         env = req.environ
         username = env.get('HTTP_X_USER_NAME',None)
         
-        if req.method == "GET" and username!= 'ceilometer' and username != 'admin' and username != None:               
+        if req.method == "GET" and username!= 'ceilometer' and username != None:               
             dek = req.environ.get('swift_crypto_fetch_key',None)       
             if dek != None:
                 if dek == "NotAuthorized":
-                  return Response(request=req, status=401, content_type="text/plain")
+                    #User not authorized to access the container
+                    return Response(request=req, status=401, content_type="text/plain")
+                #Encrypt object
                 resp.body = encrypt_msg(str(resp.body),dek) 
                 resp.headers['Etag'] = md5.new(resp.body).hexdigest()
                 resp.content_length = len(resp.body)  

@@ -49,9 +49,7 @@ def decrypt_KEK(secret,signature, sender, receiver):
                 iv = secret[:BLOCK_SIZE]
                 cipher = AES.new(master_key, AES.MODE_CBC, iv)
                 result = unpad(cipher.decrypt(secret[BLOCK_SIZE:]))
-            else:
-                #error
-                pass
+                return result
         else:
             # RSA decipher
             receiver_priv_key_rsa = RSA.importKey(get_privateKey())
@@ -62,10 +60,8 @@ def decrypt_KEK(secret,signature, sender, receiver):
             if verifier.verify(h,signature):
                 result = receiver_priv_key.decrypt(secret)
                 return result
-            else:
-                pass
-                #error
-        return result
+        #Error in signature
+        return None
 
 
 def encrypt_msg(info, secret, path=False):
