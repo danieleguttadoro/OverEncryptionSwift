@@ -15,17 +15,22 @@ sudo mkdir -m 755 -p /opt/stack/sel-daemon/
 #sudo mkdir -m 755 -p /opt/stack/sel-daemon/config
 sudo mkdir -m 755 -p /opt/stack/sel-daemon/logs
 sudo mkdir -m 755 -p /opt/stack/sel-daemon/keys
+sudo mkdir -m 755 -p /opt/stack/sel-daemon/middleware
 
 
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/init.py /opt/stack/sel-daemon/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/__init__.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/daemon.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/catalog_manager.py /opt/stack/sel-daemon/
-sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/connection.py /opt/stack/sel-daemon/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/connection.py /opt/stack/sel-daemon/middleware
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/create_user.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/simplekeystone.py /opt/stack/sel-daemon/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/keys/pub.key /opt/stack/sel-daemon/keys/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/keys/pvt.key /opt/stack/sel-daemon/keys/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/keys/mk.key /opt/stack/sel-daemon/keys/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/connection.py /opt/stack/sel-daemon/middleware
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/headers.py /opt/stack/sel-daemon/middleware
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/__init__.py /opt/stack/sel-daemon/middleware
 #sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/config/daemon.ini /opt/stack/sel-daemon/config/
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log /opt/stack/sel-daemon/logs/
 
