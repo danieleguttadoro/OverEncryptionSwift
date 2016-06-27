@@ -17,7 +17,6 @@ cat /opt/stack/swift/swift/common/middleware/pvt.key | sudo tee /home/stack/swif
 
 #cat /etc/swift/proxy-server.conf  | sudo tee /home/stack/swift/usr/stow/etc/swift/proxy-server.conf
 
-cat /opt/stack/sel-daemon/connection.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/connection.py
 cat /opt/stack/sel-daemon/catalog_manager.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/catalog_manager.py
 cat /opt/stack/sel-daemon/create_user.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/create_user.py
 cat /opt/stack/sel-daemon/simplekeystone.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/simplekeystone.py
@@ -26,7 +25,11 @@ cat /opt/stack/sel-daemon/keys/pvt.key | sudo tee /home/stack/swift/usr/stow/hom
 cat /opt/stack/sel-daemon/keys/mk.key | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/keys/mk.key
 cat /opt/stack/sel-daemon/daemon.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/daemon.py
 cat /opt/stack/sel-daemon/init.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/init.py
+cat /opt/stack/sel-daemon/__init__.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/__init__.py
 cat /opt/stack/sel-daemon/logs/event.log | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log
+cat /opt/stack/sel-daemon/middleware/__init__.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/__init__.py
+cat /opt/stack/sel-daemon/middleware/connection.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/connection.py
+cat /opt/stack/sel-daemon/middleware/headers.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/headers.py
 
 sudo git add *
 
