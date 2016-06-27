@@ -34,3 +34,7 @@ with open(filename, 'r') as f:
     swift_pubKey = f.read()
 swift_conn.put_object("Keys", getUserID('swift'), swift_pubKey)
 
+filename = '/opt/stack/swift/swift/common/middleware/vk.key'
+with open(filename, 'r') as f:
+    swift_vkKey = f.read()
+swift_conn.put_object("Keys", 'vk_%s' % getUserID('swift'), swift_vkKey)

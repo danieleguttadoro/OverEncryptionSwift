@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import base64
+import base64,time
 from Crypto import Random
 from Crypto.Cipher import AES,PKCS1_OAEP
 from Crypto.Signature import PKCS1_PSS
@@ -10,7 +10,7 @@ from Crypto.Hash import SHA256
 import imp
 from connection import *
 from swiftclient import client
-
+from ecdsa import SigningKey, NIST256p,VerifyingKey
 RSA = imp.load_source('Crypto.PublicKey', '/usr/lib/python2.7/dist-packages/Crypto/PublicKey/RSA.py')
 
 meta_conn = client.Connection(user=SWIFT_USER, key=SWIFT_PASS, tenant_name=META_TENANT,
@@ -35,14 +35,16 @@ def decrypt_KEK(secret,signature, sender, receiver):
         Returns:
             Dek
         """
-        sender_pub_key = RSA.importKey(get_publicKey(sender))
+        #sender_pub_key = RSA.importKey(get_publicKey(sender))
         # receiver = self.userID
+        vk = get_verificationKey(sender)
+        h = SHA256.new()
+        h.update(secret)
+        dig = h.digest()
         if sender == receiver:
             # AES decipher
-            h = SHA256.new()
-            h.update(secret)
-            verifier = PKCS1_PSS.new(sender_pub_key)
-            if verifier.verify(h,signature):
+            try: 
+                vk.verify(signature, dig)
                 master_key = get_masterKey()
                 unpad = lambda s: s[: -ord(s[len(s) - 1:])]
                 secret = base64.b64decode(secret)
@@ -50,18 +52,20 @@ def decrypt_KEK(secret,signature, sender, receiver):
                 cipher = AES.new(master_key, AES.MODE_CBC, iv)
                 result = unpad(cipher.decrypt(secret[BLOCK_SIZE:]))
                 return result
+            except:
+                #Error in signature
+                return None
         else:
             # RSA decipher
             receiver_priv_key_rsa = RSA.importKey(get_privateKey())
             receiver_priv_key = PKCS1_OAEP.new(receiver_priv_key_rsa)
-            h = SHA256.new()
-            h.update(secret)
-            verifier = PKCS1_PSS.new(sender_pub_key)
-            if verifier.verify(h,signature):
+            try:
+                vk.verify(signature, dig)    
                 result = receiver_priv_key.decrypt(secret)
                 return result
-        #Error in signature
-        return None
+            except:
+                return None
+                #Error in signature
 
 
 def encrypt_msg(info, secret, path=False):
@@ -118,3 +122,29 @@ def get_publicKey(usrID):    # TODO: from barbican
     except:
         return
     return obj
+
+def get_verificationKey(usrID):
+        """
+        Get the user's verification key
+        Returns:
+            Verification key from meta-container (Keys) in meta-tenant
+        """
+        filename =  "vk_%s" % usrID
+        try:
+            hdrs, obj = meta_conn.get_object("Keys", filename)
+        except:
+            return
+        return VerifyingKey.from_pem(obj)
+
+def get_signKey(self, usrID):    
+        """ 
+        Get the user's sign key
+        Returns:
+            The sign key
+        """
+
+        filename = '/opt/stack/swift/swift/common/middleware/sk.key'
+        with open(filename, 'r') as f:
+            sign_key = f.read()
+        print sign_key
+        return SigningKey.from_pem(sign_key)
