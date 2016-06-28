@@ -2,7 +2,7 @@
 
 from simplekeystone import SimpleKeystoneClient
 import swiftclient
-from connection import *
+from middleware.connection import *
 from daemon import *
 
 
