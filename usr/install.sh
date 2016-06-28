@@ -35,7 +35,8 @@ sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/connection.p
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/headers.py /opt/stack/sel-daemon/middleware
 sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/__init__.py /opt/stack/sel-daemon/middleware
 #sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/config/daemon.ini /opt/stack/sel-daemon/config/
-sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log /opt/stack/sel-daemon/logs/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/myLogger /opt/stack/sel-daemon/
+sudo cp /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/log /opt/stack/sel-daemon/logs/
 
 sudo chmod +x /opt/stack/sel-daemon/init.py
 sudo chmod +x /opt/stack/sel-daemon/daemon.py
