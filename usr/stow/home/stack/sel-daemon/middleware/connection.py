@@ -1,5 +1,5 @@
 
-AUTH_URL   = 'http://193.204.253.59:5002/v2.0'
+AUTH_URL   = 'http://127.0.0.1:5000/v2.0'
 DAEMON_PORT= '8089'
 
 TENANT_NAME = 'demo'
