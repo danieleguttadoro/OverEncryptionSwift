@@ -48,32 +48,47 @@ def create_req():
         
         #Send the public key to the user to obtain a secure connection
         logger.info('Get request received. Send public_key')
-        resp = Response(get_publicKey())
-        return resp
+        try:
+            return Response(get_publicKey())
+        except:
+            return Response(status=404)
     
     elif request.method == 'PUT':
     
-        #Receive username, password (ciphered) and user's public key
-        user, encpass, client_pubKey,client_verificationkey = request.data.split('#')
-        password = decrypt(encpass)
+        try:
+            #Receive username, password (ciphered) and user's public key
+            user, encpass, client_pubKey,client_verificationkey = request.data.split('#')
+            password = decrypt(encpass)
         
-        tenant = user.split('#')[0]
-        username = user.split('#')[1]
+            tenant = user.split('#')[0]
+            username = user.split('#')[1]
+        except:
+            return Response(status=400)
+       
+        if getUserID(username) != '0':
+            logger.info('User already exists')
+            return Response(status=409)
+        try:
+            #Create the new user
+            CreateUser(username,password,tenant,META_TENANT,'Member',AUTH_URL).start()
         
-        #Create the new user
-        CreateUser(username,password,tenant,META_TENANT,'Member',AUTH_URL).start()
+            #Create user's meta catalog
+            userid = getUserID(username)
+            daemonid = getUserID(ADMIN_USER)
+            if userid == '0' or daemonid == '0':
+                logger.info('Error in create users')
+                return Response(status=404)
+
+            create_catalog(userid,daemonid)
         
-        #Create user's meta catalog
-        userid = getUserID(username)
-        daemonid = getUserID(ADMIN_USER)
-        create_catalog(userid,daemonid)
-        
-        #Put the public key into meta-container Keys
-        meta_conn.put_object("Keys", userid, client_pubKey)
-        meta_conn.put_object("Keys", "vk_%s" % userid, client_verificationkey)
+            #Put the public key into meta-container Keys
+            meta_conn.put_object("Keys", userid, client_pubKey)
+            meta_conn.put_object("Keys", "vk_%s" % userid, client_verificationkey)
+        except:
+            return Response(status=409)
 
         logger.info('User correctly created')
-        return Response(userid)
+        return Response(status=200, response=userid)
 
     else:
         logger.error('On create_req function')
@@ -123,10 +138,10 @@ def getUserID(username):
     """
     Get the user's ID from Keystone
     """
-    this_user = filter(lambda x: x.username == username, kc_conn.users.list())
-    if this_user:
-        return this_user[0].id
-    return "0"
+    try:
+        filter(lambda x: x.username == username, kc_conn.users.list())[0].id
+    except:
+        return "0"
 
 def getUsername(userid):
     """
@@ -210,8 +225,10 @@ def start(mode):
         return Response(getUserID(request.data))
     if mode == "get_name" and request.method == "PUT":
         #get_name request to get a specific username
-        return Response(getUsername(request.data))
-
+        try: 
+            return Response(getUsername(request.data))
+        except:
+            return Response(status=404)
 
 app.wsgi_app = HeaderGetter(app.wsgi_app)
 
