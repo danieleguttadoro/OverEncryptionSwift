@@ -5,7 +5,7 @@ from middleware.connection import *
 from Crypto.PublicKey import RSA 
 from Crypto.Cipher import AES
 from base64 import b64decode
-
+from ecdsa import SigningKey, NIST256p
 from keystoneclient.v2_0 import client as kc
 import swiftclient
 
@@ -45,7 +45,6 @@ def create_req():
     Create the new user and its new catalog, returning the user id
     """
     if request.method == 'GET':
-        
         #Send the public key to the user to obtain a secure connection
         logger.info('Get request received. Send public_key')
         try:
@@ -54,14 +53,13 @@ def create_req():
             return Response(status=404)
     
     elif request.method == 'PUT':
-    
         try:
             #Receive username, password (ciphered) and user's public key
             user, encpass, client_pubKey,client_verificationkey = request.data.split('#')
             password = decrypt(encpass)
         
-            tenant = user.split('#')[0]
-            username = user.split('#')[1]
+            tenant = user.split(':')[0]
+            username = user.split(':')[1]
         except:
             return Response(status=400)
        
@@ -71,16 +69,13 @@ def create_req():
         try:
             #Create the new user
             CreateUser(username,password,tenant,META_TENANT,'Member',AUTH_URL).start()
-        
             #Create user's meta catalog
             userid = getUserID(username)
             daemonid = getUserID(ADMIN_USER)
             if userid == '0' or daemonid == '0':
                 logger.info('Error in create users')
                 return Response(status=404)
-
             create_catalog(userid,daemonid)
-        
             #Put the public key into meta-container Keys
             meta_conn.put_object("Keys", userid, client_pubKey)
             meta_conn.put_object("Keys", "vk_%s" % userid, client_verificationkey)
@@ -138,9 +133,13 @@ def getUserID(username):
     """
     Get the user's ID from Keystone
     """
+    print "getuserid"
     try:
-        filter(lambda x: x.username == username, kc_conn.users.list())[0].id
+        _id = filter(lambda x: x.username == username, kc_conn.users.list())[0].id
+        print _id
+        return _id
     except:
+        print 0
         return "0"
 
 def getUsername(userid):
@@ -228,7 +227,8 @@ def gen_keypair(bits):
 
 @app.route("/<mode>",methods=['GET','PUT'])
 def start(mode):
-    logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='/opt/stack/sel-daemon/logs/log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    print mode, request.data
     if mode == "update" and request.method == "PUT":
         #Update request to insert a new KEK in the catalogs
         return update_req()
