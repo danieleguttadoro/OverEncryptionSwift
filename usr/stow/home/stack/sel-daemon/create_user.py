@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from connection import *
+from middleware.connection import *
 from simplekeystone import SimpleKeystoneClient
 
 class CreateUser:
