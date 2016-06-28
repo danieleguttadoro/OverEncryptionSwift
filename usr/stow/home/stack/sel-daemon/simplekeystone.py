@@ -3,7 +3,7 @@
 from keystoneclient.exceptions import NotFound, Conflict
 import keystoneclient.v2_0.client as kc
 
-from logs.myLogger import *
+from myLogger import *
 
 class SimpleKeystoneClient:
     """
