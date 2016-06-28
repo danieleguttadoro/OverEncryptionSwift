@@ -4,7 +4,7 @@ import json,os,base64
 from itertools import *
 
 from swiftclient import client
-from connection import *
+from middleware.connection import *
 
 from logs.myLogger import *
 
