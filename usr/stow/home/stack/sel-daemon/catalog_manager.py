@@ -6,7 +6,7 @@ from itertools import *
 from swiftclient import client
 from middleware.connection import *
 
-from logs.myLogger import *
+from myLogger import *
 
 meta_conn = client.Connection(user=ADMIN_USER, key=ADMIN_KEY, tenant_name=META_TENANT,
                               authurl=AUTH_URL, auth_version='2.0')
