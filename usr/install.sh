@@ -6,11 +6,6 @@ sudo cp /home/stack/swift/common/middleware/key_master.py /opt/stack/swift/swift
 sudo cp /home/stack/swift/common/middleware/catalog_manager.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/common/middleware/key_manager.py /opt/stack/swift/swift/common/middleware
 sudo cp /home/stack/swift/common/middleware/connection.py /opt/stack/swift/swift/common/middleware
-sudo cp /home/stack/swift/common/middleware/mk.key /opt/stack/swift/swift/common/middleware
-sudo cp /home/stack/swift/common/middleware/pvt.key /opt/stack/swift/swift/common/middleware
-sudo cp /home/stack/swift/common/middleware/pub.key /opt/stack/swift/swift/common/middleware
-sudo cp /home/stack/swift/common/middleware/vk.key /opt/stack/swift/swift/common/middleware
-sudo cp /home/stack/swift/common/middleware/sk.key /opt/stack/swift/swift/common/middleware
 
 sudo cp /home/stack/swift/usr/stow/home/vagrant/.vimrc /home/vagrant/
 
