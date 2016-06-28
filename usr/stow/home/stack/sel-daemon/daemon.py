@@ -12,7 +12,7 @@ import swiftclient
 from flask import *
 app = Flask(__name__)
 
-from logs.myLogger import *
+from myLogger import *
 from middleware.headers import HeaderGetter
   
 BLOCK_SIZE = 16
