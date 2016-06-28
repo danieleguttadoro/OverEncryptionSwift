@@ -160,7 +160,7 @@ def decrypt(secret):
     receiver_priv_key = RSA.importKey(get_privateKey())
     return receiver_priv_key.decrypt(b64decode(secret))
 
-def generate_swiftKeys(self, force=False):
+def generate_swiftKeys(force=False):
     """
     Generate a RSA keypair for the swift user, then save them locally
     The private RSA key must be encrypted before being stored.
@@ -169,11 +169,13 @@ def generate_swiftKeys(self, force=False):
 
     BLOCK_SIZE = 16
 
-    pvtK, pubK = self.gen_keypair(1024)
+    pvtK, pubK = gen_keypair(1024)
     pvk_filename = "/opt/stack/swift/swift/common/middleware/pvt.key"
     puk_filename = "/opt/stack/swift/swift/common/middleware/pub.key"
     mk_filename = "/opt/stack/swift/swift/common/middleware/mk.key"
-
+    sk_filename = "/opt/stack/swift/swift/common/middleware/sk.key"
+    vk_filename = "/opt/stack/swift/swift/common/middleware/vk.key"
+   
     if not force:
         if (os.path.exists(pvk_filename) or os.path.exists(puk_filename)):
             logger.warning("Warning: User keys already exist")
@@ -183,7 +185,20 @@ def generate_swiftKeys(self, force=False):
     with open(mk_filename, 'w') as mk_file:
         mk_file.write(base64.b64encode(master_key))
         logger.info("Generated and Stored AES MasterKey.")
+    #Generate signing keys
+    sk = SigningKey.generate(curve=NIST256p)
+        
+    vk = sk.get_verifying_key()
+    sk = sk.to_pem()
+    vk = vk.to_pem()
 
+    with open(vk_filename, 'w') as vk_file:
+        vk_file.write(vk)
+        logger.info("Generated and Stored Secure verifying key.")
+            
+    with open(sk_filename, 'w') as sk_file:
+        sk_file.write(sk)
+        logger.info("Generated and Stored Secure signing key.")
     # Generate and store RSA keys
     with open(pvk_filename, "w") as pvk_file:
         pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
@@ -199,7 +214,7 @@ def generate_swiftKeys(self, force=False):
     
     return pubK
 
-def gen_keypair(self, bits):
+def gen_keypair(bits):
     """
     Generate an RSA keypair with an exponent of 65537 in PEM format
     param: bits The key length in bits

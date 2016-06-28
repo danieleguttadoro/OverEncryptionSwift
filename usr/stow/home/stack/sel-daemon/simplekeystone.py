@@ -46,6 +46,8 @@ class SimpleKeystoneClient:
         try:
             self.ks_client.roles.add_user_role(user, role, tenant, **kwargs)
             logger.info('Role given to user.')
+            print "entro"
         except Conflict:
+            print "nonentro"
             logger.info('User already has the requested role.')
 

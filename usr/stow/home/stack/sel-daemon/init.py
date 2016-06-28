@@ -7,15 +7,19 @@ from daemon import *
 
 
 kc = SimpleKeystoneClient(ADMIN_USER,ADMIN_KEY,TENANT_NAME,AUTH_URL)
-
+# find 'admin' and 'Member' roles
 admin_role = kc.ks_client.roles.find(name="admin")
-
+member_role = kc.ks_client.roles.find(name="Member")
 # Create meta-tenant
 meta_tenant = kc.create_tenant(name=META_TENANT)
 # Create user tenant
 #tenant = self.client.create_tenant(name=TENANT_NAME) <-- already exist!
+admin_user = kc.ks_client.users.find(name=ADMIN_USER)
+swift_user = kc.ks_client.users.find(name=SWIFT_USER)
 
-kc.add_user_role(ADMIN_USER, admin_role, meta_tenant)
+kc.add_user_role(admin_user, admin_role, meta_tenant)
+kc.add_user_role(swift_user, member_role, meta_tenant)
+
 swift_conn = swiftclient.client.Connection(user=ADMIN_USER,
                                            key=ADMIN_KEY,
                                            tenant_name=META_TENANT,
