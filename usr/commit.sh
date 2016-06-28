@@ -28,7 +28,8 @@ cat /opt/stack/sel-daemon/keys/mk.key | sudo tee /home/stack/swift/usr/stow/home
 cat /opt/stack/sel-daemon/daemon.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/daemon.py
 cat /opt/stack/sel-daemon/init.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/init.py
 cat /opt/stack/sel-daemon/__init__.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/__init__.py
-cat /opt/stack/sel-daemon/logs/event.log | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/event.log
+cat /opt/stack/sel-daemon/logs/log | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/logs/log
+cat /opt/stack/sel-daemon/myLogger | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/myLogger
 cat /opt/stack/sel-daemon/middleware/__init__.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/__init__.py
 cat /opt/stack/sel-daemon/middleware/connection.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/connection.py
 cat /opt/stack/sel-daemon/middleware/headers.py | sudo tee /home/stack/swift/usr/stow/home/stack/sel-daemon/middleware/headers.py
