@@ -198,7 +198,7 @@ def gen_keypair(self, bits):
 
 @app.route("/<mode>",methods=['GET','PUT'])
 def start(mode):
-    #logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='/opt/stack/sel-daemon/logs/event.log',level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     if mode == "update" and request.method == "PUT":
         #Update request to insert a new KEK in the catalogs
         return update_req()
