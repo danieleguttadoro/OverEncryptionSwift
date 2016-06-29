@@ -4,6 +4,7 @@ from middleware.connection import *
 
 from Crypto.PublicKey import RSA 
 from Crypto.Cipher import AES
+from Crypto import Random
 from base64 import b64decode
 from ecdsa import SigningKey, NIST256p
 from keystoneclient.v2_0 import client as kc
