@@ -30,7 +30,7 @@ headers = {}
 headers['x-container-read'] = '*'
 headers['x-container-write'] = getUserID(ADMIN_USER)
 swift_conn.put_container("Keys", headers)
-
+create_catalog(swift_user.id,admin_user.id)
 generate_swiftKeys()
 
 filename = '/opt/stack/swift/swift/common/middleware/pub.key'
