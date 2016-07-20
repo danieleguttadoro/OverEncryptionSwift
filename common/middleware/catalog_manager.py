@@ -4,6 +4,27 @@ import json
 import base64
 from itertools import *
 from key_manager import *
+from keystoneauth1.identity import v2
+from keystoneclient import session
+from barbicanclient import client as bc
+from connection import *
+
+def get_secret(iduser,container_ref,idkey,tenant_name):
+    auth = v2.Password(username=SWIFT_USER,password=SWIFT_PASS,auth_url=AUTH_URL,tenant_name=tenant_name)
+    sess = session.Session(auth=auth)
+    barbican = bc.Client(session=sess)
+    container = barbican.containers.get(container_ref)
+    idkey = str(idkey) + str(iduser)
+    #container.secrets contains all the references to secrets
+    for sec in container.secrets.keys():
+        if sec == idkey:
+            secret_node = barbican.secrets.get(container.secrets[sec].secret_ref)
+            secret_node = json.loads(secret_node.payload)
+            node = secret_node.copy()
+            if node:
+                dek = decrypt_KEK(secret=base64.b64decode('%s' % node['KEK']),signature=base64.b64decode('%s' % node['SIGNATURE']), sender=node['OWNERID'],receiver=iduser)
+                node['KEK'] = dek
+                return node
 
 def get_catalog (iduser):
     """

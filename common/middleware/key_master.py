@@ -32,6 +32,7 @@ class key_master(WSGIContext):
         req = Request(env)
         username   = env.get('HTTP_X_USER_NAME',None)
         userid     = env.get('HTTP_X_USER_ID',None)
+        tenant     = env.get('HTTP_X_TENANT_NAME',None)
         version, account, container, obj = req.split_path(1,4,True)
         #COMMENT: Control the author of the request. 
         if req.method == "PUT" and req.headers.get('x-container-read',None) is not None and  container is not None and obj is None:
@@ -57,13 +58,14 @@ class key_master(WSGIContext):
                 response = new_req.get_response(self.app)
                 cont_header = response.headers
                 container_sel_id = cont_header.get('x-container-meta-sel-id',None)
+                cont_secret_ref = cont_header.get('x-container-meta-container-ref',None)
                 if container_sel_id is not None:
                     #Sel applied. Necessary to encrypt
                     resp_obj = req.get_response(self.app)
                     object_sel_id = resp_obj.headers.get('x-object-meta-sel-id',None)
                     if object_sel_id != container_sel_id:
                         #The object has been uploaded before the last policy change
-                        dek = get_cat_node(self.userID,container_sel_id).get('KEK',None)
+                        dek = get_secret(self.userID,cont_secret_ref,container_sel_id,tenant).get('KEK',None)
                         if dek is not None:
                             env['swift_crypto_fetch_key'] = dek
                         else:
