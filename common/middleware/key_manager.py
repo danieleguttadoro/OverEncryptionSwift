@@ -83,6 +83,19 @@ def encrypt_msg(info, secret, path=False):
         encoded = base64.b32encode(encoded)
     return encoded
 
+def decrypt_msg(encryptedString, secret, path=False):
+        """
+        Decrypt a message using AES
+        """
+        PADDING = '{'
+        if path:
+            encryptedString = base64.b32decode(encryptedString)
+        decodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
+        key = secret
+        cipher = AES.new(key)
+        decoded = decodeAES(cipher, encryptedString)
+        return decoded
+
 def get_masterKey():    
     """ 
     Get the user's master key

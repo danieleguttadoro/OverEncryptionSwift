@@ -59,18 +59,25 @@ class key_master(WSGIContext):
                 cont_header = response.headers
                 container_sel_id = cont_header.get('x-container-meta-sel-id',None)
                 cont_secret_ref = cont_header.get('x-container-meta-container-ref',None)
-                if container_sel_id is not None:
-                    #Sel applied. Necessary to encrypt
-                    resp_obj = req.get_response(self.app)
-                    object_sel_id = resp_obj.headers.get('x-object-meta-sel-id',None)
-                    if object_sel_id != container_sel_id:
-                        #The object has been uploaded before the last policy change
+                env['swift_crypto_fetch_cont_id'] = container_sel_id    
+                resp_obj = req.get_response(self.app)
+                object_sel_id = resp_obj.headers.get('x-object-meta-sel-id',None)
+                if object_sel_id != container_sel_id:# and onResource=="False":
+                    #The object has been uploaded before the last policy change
+                    if object_sel_id is not None:
+                        old_dek = get_secret(self.userID,cont_secret_ref,object_sel_id,tenant).get('KEK',None)
+                        if old_dek is not None:
+                            env['swift_crypto_old_fetch_key'] = old_dek
+                        else:
+                            env['swift_crypto_old_fetch_key'] = "NotAuthorized"
+                    if container_sel_id is not None:       
                         dek = get_secret(self.userID,cont_secret_ref,container_sel_id,tenant).get('KEK',None)
                         if dek is not None:
                             env['swift_crypto_fetch_key'] = dek
                         else:
-                            #Transient phase 
                             env['swift_crypto_fetch_key'] = "NotAuthorized"
+
+                        
         return self.app(env, start_response)
 
 def filter_factory(global_conf, **local_conf):
