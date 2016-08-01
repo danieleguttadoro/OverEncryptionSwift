@@ -7,6 +7,12 @@ from Crypto.Cipher import AES,PKCS1_OAEP
 from Crypto.Signature import PKCS1_PSS
 from Crypto.Hash import SHA256
 #from Crypto.PublicKey import RSA
+
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from keystoneclient import client as kc
+from barbicanclient import client as bc
+
 import imp
 from connection import *
 from swiftclient import client
@@ -83,19 +89,6 @@ def encrypt_msg(info, secret, path=False):
         encoded = base64.b32encode(encoded)
     return encoded
 
-def decrypt_msg(encryptedString, secret, path=False):
-        """
-        Decrypt a message using AES
-        """
-        PADDING = '{'
-        if path:
-            encryptedString = base64.b32decode(encryptedString)
-        decodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
-        key = secret
-        cipher = AES.new(key)
-        decoded = decodeAES(cipher, encryptedString)
-        return decoded
-
 def get_masterKey():    
     """ 
     Get the user's master key
@@ -129,12 +122,18 @@ def get_publicKey(usrID):    # TODO: from barbican
     Returns:
         Public key from meta-container (Keys) in meta-tenant
     """
-    filename =  usrID
+    auth = v3.Password(auth_url=AUTH_URL,username=SWIFT_USER,password=SWIFT_PASS,project_name='demo',project_domain_id="Default",user_domain_name='Default')
+    sess = session.Session(auth=auth)
+    barbican = bc.Client(session=sess)
+    keystone = kc.Client(session=sess)
     try:
-        hdrs, obj = meta_conn.get_object("Keys", filename)
-    except:
+        user = keystone.users.get(usrID)
+        dict_keys = json.loads(user.description)
+        secret_node = barbican.secrets.get(dict_keys.get('Public_Key',''))
+    except Exception,err:
+        print Exception,err
         return
-    return obj
+    return secret_node.payload
 
 def get_verificationKey(usrID):
         """
@@ -142,12 +141,17 @@ def get_verificationKey(usrID):
         Returns:
             Verification key from meta-container (Keys) in meta-tenant
         """
-        filename =  "vk_%s" % usrID
+        auth = v3.Password(auth_url=AUTH_URL,username=SWIFT_USER,password=SWIFT_PASS,project_name='demo',project_domain_id="Default",user_domain_name="Default")
+        sess = session.Session(auth=auth)
+        barbican = bc.Client(session=sess)
+        keystone = kc.Client(session=sess)
         try:
-            hdrs, obj = meta_conn.get_object("Keys", filename)
+            user = keystone.users.get(usrID)
+            dict_keys = json.loads(user.description)
+            secret_node = barbican.secrets.get(dict_keys.get('Verification_Key',''))
         except:
             return
-        return VerifyingKey.from_pem(obj)
+        return VerifyingKey.from_pem(secret_node.payload)
 
 def get_signKey(self, usrID):    
         """ 
