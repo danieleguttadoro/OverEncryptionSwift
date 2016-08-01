@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os
+import os,json
 import base64,time
 from Crypto import Random
 from Crypto.Cipher import AES,PKCS1_OAEP
@@ -41,6 +41,9 @@ def decrypt_KEK(secret,signature, sender, receiver):
         Returns:
             Dek
         """
+        print "QQQQQQQQQQQQQQQQ"
+        print sender, receiver, signature,secret, receiver
+        print "QQQQQQ"
         #sender_pub_key = RSA.importKey(get_publicKey(sender))
         # receiver = self.userID
         vk = get_verificationKey(sender)
@@ -63,13 +66,19 @@ def decrypt_KEK(secret,signature, sender, receiver):
                 return None
         else:
             # RSA decipher
+            print "LLLLLLLLLLLLLLLLLLLLL"
             receiver_priv_key_rsa = RSA.importKey(get_privateKey())
             receiver_priv_key = PKCS1_OAEP.new(receiver_priv_key_rsa)
             try:
+                print "ZZZZZZZZZZZZZZZZZZZZZZ"
                 vk.verify(signature, dig)    
                 result = receiver_priv_key.decrypt(secret)
+                print "MMMMMMMMMMMMMMMMMMMMMM"
+                print result
                 return result
-            except:
+            except Exception,err:
+                print "TTTTTTTTTTTTTTTTTTTTT"
+                print Exception,err
                 return None
                 #Error in signature
 
@@ -88,6 +97,19 @@ def encrypt_msg(info, secret, path=False):
         # Encoding base32 to avoid paths (names containing slashes /)
         encoded = base64.b32encode(encoded)
     return encoded
+
+def decrypt_msg(encryptedString, secret, path=False):
+        """
+        Decrypt a message using AES
+        """
+        PADDING = '{'
+        if path:
+            encryptedString = base64.b32decode(encryptedString)
+        decodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
+        key = secret
+        cipher = AES.new(key)
+        decoded = decodeAES(cipher, encryptedString)
+        return decoded
 
 def get_masterKey():    
     """ 
@@ -141,17 +163,26 @@ def get_verificationKey(usrID):
         Returns:
             Verification key from meta-container (Keys) in meta-tenant
         """
-        auth = v3.Password(auth_url=AUTH_URL,username=SWIFT_USER,password=SWIFT_PASS,project_name='demo',project_domain_id="Default",user_domain_name="Default")
+        auth = v3.Password(auth_url=AUTH_URL,username=ADMIN_USER,password=ADMIN_KEY,project_name='demo',project_domain_id="Default",user_domain_name="Default")
         sess = session.Session(auth=auth)
         barbican = bc.Client(session=sess)
         keystone = kc.Client(session=sess)
         try:
             user = keystone.users.get(usrID)
+            print "HHHHHHHHHHHHHH"
+            print user
             dict_keys = json.loads(user.description)
+            print "UUUUUUUUUUUU"
+            print dict_keys
+            print "UUUUUUUUUUUUU"
             secret_node = barbican.secrets.get(dict_keys.get('Verification_Key',''))
-        except:
+            print secret_node.payload
+        except Exception,err:
+            print Exception,err
             return
-        return VerifyingKey.from_pem(secret_node.payload)
+        a = VerifyingKey.from_pem(secret_node.payload)
+        print a
+        return a
 
 def get_signKey(self, usrID):    
         """ 

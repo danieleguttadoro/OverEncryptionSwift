@@ -28,13 +28,14 @@ class key_master(WSGIContext):
         self.app = app
         self.conf = conf
         self.name = SWIFT_USER
-        #self.userID = self.getUserID()
+        self.userID = self.getUserID()
 
     def __call__(self, env, start_response):
         
         req = Request(env)
         username   = env.get('HTTP_X_USER_NAME',None)
         userid     = env.get('HTTP_X_USER_ID',None)
+        tenant     = env.get('HTTP_X_PROJECT_NAME',None)
         version, account, container, obj = req.split_path(1,4,True)
         #COMMENT: Control the author of the request. 
         if req.method == "PUT" and req.headers.get('x-container-read',None) is not None and  container is not None and obj is None:
@@ -60,18 +61,31 @@ class key_master(WSGIContext):
                 response = new_req.get_response(self.app)
                 cont_header = response.headers
                 container_sel_id = cont_header.get('x-container-meta-sel-id',None)
-                if container_sel_id is not None:
-                    #Sel applied. Necessary to encrypt
-                    resp_obj = req.get_response(self.app)
-                    object_sel_id = resp_obj.headers.get('x-object-meta-sel-id',None)
-                    if object_sel_id != container_sel_id:
-                        #The object has been uploaded before the last policy change
-                        dek = get_cat_node(self.userID,container_sel_id).get('KEK',None)
+                cont_secret_ref = cont_header.get('x-container-meta-container-ref',None)
+                env['swift_crypto_fetch_cont_id'] = container_sel_id    
+                resp_obj = req.get_response(self.app)
+                object_sel_id = resp_obj.headers.get('x-object-meta-sel-id',None)
+                if object_sel_id != container_sel_id:# and onResource=="False":
+                    #The object has been uploaded before the last policy change
+                    if object_sel_id is not None:
+                        old_dek = get_secret(self.userID,cont_secret_ref,object_sel_id,tenant).get('KEK',None)
+                        if old_dek is not None:
+                            env['swift_crypto_old_fetch_key'] = old_dek
+                        else:
+                            env['swift_crypto_old_fetch_key'] = "NotAuthorized"
+                    if container_sel_id is not None: 
+                        print "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYY"
+                        print container_sel_id
+                        print cont_secret_ref
+                        print self.userID
+                        print tenant      
+                        dek = get_secret(self.userID,cont_secret_ref,container_sel_id,tenant).get('KEK',None)
                         if dek is not None:
                             env['swift_crypto_fetch_key'] = dek
                         else:
-                            #Transient phase 
-                            env['swift_crypto_fetch_key'] = "NotAuthorized"
+                            env['swift_crypto_fetch_key'] = "NotAuthorized"  
+                        print "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+                        print env      
         return self.app(env, start_response)
 
 def filter_factory(global_conf, **local_conf):
