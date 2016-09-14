@@ -41,9 +41,6 @@ def decrypt_KEK(secret,signature, sender, receiver):
         Returns:
             Dek
         """
-        print "QQQQQQQQQQQQQQQQ"
-        print sender, receiver, signature,secret, receiver
-        print "QQQQQQ"
         #sender_pub_key = RSA.importKey(get_publicKey(sender))
         # receiver = self.userID
         vk = get_verificationKey(sender)
@@ -66,19 +63,13 @@ def decrypt_KEK(secret,signature, sender, receiver):
                 return None
         else:
             # RSA decipher
-            print "LLLLLLLLLLLLLLLLLLLLL"
             receiver_priv_key_rsa = RSA.importKey(get_privateKey())
             receiver_priv_key = PKCS1_OAEP.new(receiver_priv_key_rsa)
             try:
-                print "ZZZZZZZZZZZZZZZZZZZZZZ"
                 vk.verify(signature, dig)    
                 result = receiver_priv_key.decrypt(secret)
-                print "MMMMMMMMMMMMMMMMMMMMMM"
-                print result
                 return result
             except Exception,err:
-                print "TTTTTTTTTTTTTTTTTTTTT"
-                print Exception,err
                 return None
                 #Error in signature
 
@@ -151,9 +142,10 @@ def get_publicKey(usrID):    # TODO: from barbican
     try:
         user = keystone.users.get(usrID)
         dict_keys = json.loads(user.description)
-        secret_node = barbican.secrets.get(dict_keys.get('Public_Key',''))
+        ref = dict_keys.get('Public_Key','')
+        ref = "%s/secrets/%s" %(BARBICAN_URL,ref)
+        secret_node = barbican.secrets.get(ref)
     except Exception,err:
-        print Exception,err
         return
     return secret_node.payload
 
@@ -169,19 +161,13 @@ def get_verificationKey(usrID):
         keystone = kc.Client(session=sess)
         try:
             user = keystone.users.get(usrID)
-            print "HHHHHHHHHHHHHH"
-            print user
             dict_keys = json.loads(user.description)
-            print "UUUUUUUUUUUU"
-            print dict_keys
-            print "UUUUUUUUUUUUU"
-            secret_node = barbican.secrets.get(dict_keys.get('Verification_Key',''))
-            print secret_node.payload
+            ref = dict_keys.get('Verification_Key','')
+            ref = "%s/secrets/%s" %(BARBICAN_URL,ref)
+            secret_node = barbican.secrets.get(ref)
         except Exception,err:
-            print Exception,err
             return
         a = VerifyingKey.from_pem(secret_node.payload)
-        print a
         return a
 
 def get_signKey(self, usrID):    
@@ -194,5 +180,4 @@ def get_signKey(self, usrID):
         filename = '/opt/stack/swift/swift/common/middleware/sk.key'
         with open(filename, 'r') as f:
             sign_key = f.read()
-        print sign_key
         return SigningKey.from_pem(sign_key)

@@ -11,30 +11,23 @@ from connection import *
 
 def get_secret(iduser,container_ref,idkey,tenant_name):
     try:
-        print "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
         auth = v3.Password(username=SWIFT_USER,password=SWIFT_PASS,auth_url=AUTH_URL,project_name=tenant_name,user_domain_name='Default',project_domain_name='Default')
         sess = session.Session(auth=auth)
         barbican = bc.Client(session=sess)
+        container_ref = "%s/containers/%s" %(BARBICAN_URL,container_ref)
         container = barbican.containers.get(container_ref)
         idkey = str(idkey) + str(iduser)
     except Exception,err:
-        print Exception,err
-    print "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+        pass
     #container.secrets contains all the references to secrets
     for sec in container.secrets.keys():
-        print sec
-        print "EEEEEEEEEEEEEEEEEEEEEEEEEEEE"
         if sec == idkey:
             secret_node = barbican.secrets.get(container.secrets[sec].secret_ref)
             secret_node = json.loads(secret_node.payload)
             node = secret_node.copy()
-            print node
             if node is not None:
 
                 dek = decrypt_KEK(secret=base64.b64decode('%s' % node['KEK']),signature=base64.b64decode('%s' % node['SIGNATURE']), sender=node['OWNERID'],receiver=iduser)
-                print "RRRRRRRRRRRRRRRRRRRRR"
-                print dek
-                print "RRRRRRRRRRRRRR"
                 node['KEK'] = dek
                 return node
 
