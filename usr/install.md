@@ -1,13 +1,15 @@
 # Setup Puppet
-https://github.com/danieleguttadoro/PuppetEncryptionSwift.git
+https://github.com/AlessandroSaullo/devstack-vagrant-enc.git
 
 This is a modified version of puppet. 
 
   * Introduced module 'swift':
   
-  'puppet/swift/manifests/init.pp' to perfom two actions, clone OverEncryptionSwift into '/home/stack/swift' and make executable 'command-git.sh'  
+  'puppet/swift/manifests/init.pp' to perfom two actions, clone encswift_server (https://github.com/danieleguttadoro/encswift_server.git) into '/home/stack/swift' and make executable 'command-git.sh'  
   * Change file 'devstack/templates/local.erb':
-  
+ 
+  enable_plugin barbican https://git.openstack.org/openstack/barbican stable/mitaka
+
   ```ruby
   <% if defined?(@manager_extra_services) %>
   
@@ -21,4 +23,4 @@ This is a modified version of puppet.
   <% end %>
   ```
   
-  to make executable and execute 'install.sh', that substitutes the swift folder into '/opt/stack/swift/' and links 'proxy-server.conf' and 'entry_points.txt' with the respective version on '/etc/swift/' and   '/opt/stack/swift/swift.egg-info/'
+  to make executable and execute 'install.sh', that substitutes the swift folder into '/opt/stack/swift/' and links 'proxy-server.conf' with the respective version on '/etc/swift/'
